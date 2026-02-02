@@ -1,0 +1,136 @@
+System Overview: Multi-Vertical Event Resource Planner
+This system functions as a Centralized Resource & Logistics Engine. Unlike a standard retail system, an events business combines three distinct operational models into one timeline: Asset Rental (Deco, PA Systems), Service Booking (Photography), and Custom Manufacturing (Cakes).
+
+The system's primary goal is to prevent "operational collisions"—ensuring that the PA system rented to Client A isn't also promised to Client B, while simultaneously managing the production schedule for a cake and the calendar of a photographer for the same or different events.
+
+Core Functional Modules
+To manage these different business lines without conflict, the system is divided into four logical modules that feed into a central "Master Schedule."
+
+1. The Asset Rental Module (Deco & PA Systems)
+This module manages "returnable inventory." It treats items like speakers, amplifiers, table runners, and centerpieces as assets that have a check-out and check-in status.
+
+Inventory Logic: It tracks total stock vs. available stock for specific dates. It accounts for "buffer time" (maintenance/cleaning) between rentals.
+
+Bundling: It allows grouping items (e.g., "Gold Wedding Package" includes 10 centerpieces + 2 PA speakers).
+
+Wear & Tear Tracking: It flags items for repair upon return (e.g., a blown speaker or stained tablecloth) so they are removed from availability.
+
+2. The Service Availability Module (Photography)
+This module manages "time slots" rather than physical stock. It functions like a calendar appointment system.
+
+Personnel Allocation: It links bookings to specific photographers. If you have two photographers, the system allows two simultaneous photo bookings but blocks a third.
+
+Deliverable Tracking: It tracks post-event workflows, such as editing time, photo selection, and final album delivery.
+
+3. The Production Module (Cakes)
+This module manages "consumable custom orders." Unlike the rentals, these items do not come back.
+
+Lead Time Management: It enforces ordering deadlines based on complexity (e.g., "Wedding cakes require 14 days notice").
+
+Requirement Capture: It provides structured forms for dietary restrictions, flavor profiles, and design reference uploads.
+
+Production Stages: It tracks the status of the order: Order Received -> Baking -> Decorating -> Ready for Dispatch.
+
+4. The Logistics & Dispatch Module (The Glue)
+This is the operational heart that connects the other three. It organizes the physical movement of goods and people.
+
+Route Planning: It groups deliveries for the same day (e.g., dropping off the PA system and the Cake at the same venue).
+
+Recovery Scheduling: It generates "Pick-up Lists" for the day after the event to retrieve the Deco and PA equipment.
+
+The User Journey (Workflow)
+Here is how data flows through the system from a business logic perspective:
+
+Phase 1: Inquiry & Availability Check
+
+The client inputs an event date.
+
+The system performs a Conflict Check:
+
+Are enough chairs available? (Inventory Check)
+
+Is the photographer free? (Calendar Check)
+
+Is there oven capacity for the cake? (Production Capacity Check)
+
+Phase 2: Reservation & Deposit
+
+A "Tentative Hold" is placed on the assets and time slots.
+
+Upon deposit payment, the status converts to "Confirmed," permanently reducing the available stock/time for that date so other clients cannot book them.
+
+Phase 3: Fulfillment (The Event)
+
+Dispatch Note: Generated for the warehouse team to load the PA and Deco.
+
+Job Sheet: Generated for the photographer with venue details and shot lists.
+
+Delivery Order: Generated for the cake with handling instructions.
+
+Phase 4: Return & Reconciliation
+
+Check-in: The Deco and PA systems are scanned back into the warehouse.
+
+Damage Report: If a microphone is missing or a vase is broken, the system flags the client's security deposit for deduction.
+
+Service Closeout: The photographer uploads the final images, marking the job as complete.
+
+Key System Requirements
+Real-Time Dashboard: A calendar view showing which equipment is out, which cakes are due, and where photographers are located on any given day.
+
+Dynamic Pricing: The ability to charge differently based on rental duration (e.g., 24-hour hire vs. weekend hire) or seasonality.
+
+Contract Generation: Automatically merging the rental terms (for damage liability) with the service agreement (for photography rights) and the purchase agreement (for the cake) into a single client document.
+
+System features
+1. Unified Calendar & Scheduling
+Master Conflict Detector: A central calendar that flags overlaps immediately. If you try to book the "Gold PA System" for a wedding on Saturday, but it’s already reserved for a corporate event, the system blocks the action.
+
+Multi-View Timeline:
+
+Production View: Shows the bakery team what cakes need to be baked vs. decorated today.
+
+Logistics View: Shows the driver which equipment needs to be dropped off and picked up.
+
+Staff View: Shows the photographer where they need to be and at what time.
+
+2. Smart Inventory Management (Deco & PA)
+Bundling & Packages: The ability to create a single "item" called "Wedding Gold Package" that, when booked, automatically reserves 50 chairs, 10 tables, 2 speakers, and 1 mixer from your inventory count.
+
+Buffer Time Configuration: Automatically adds a "maintenance window" after a rental. If a PA system returns Sunday night, the system blocks it from being rented Monday morning to allow time for testing and cable coiling.
+
+Damage & Repair Logging: A feature to flag specific items (e.g., "Speaker #3") as "Damaged/In Repair." This removes the item from available inventory so sales staff don't accidentally rent out broken equipment.
+
+Barcode/QR Check-in: A scanning feature for warehouse staff to quickly check items out before an event and scan them back in upon return to verify everything came back.
+
+3. Service Management (Photography)
+Photographer Assignment: Assign specific shooters to specific jobs. If you have freelancers, you can track who is working which event.
+
+Post-Production Tracker: Tracks the stages of the service after the event: "Raw Photos Backed Up" -> "Editing in Progress" -> "Client Review" -> "Final Album Delivered."
+
+Digital Asset Link: A field in the client's booking where the final Google Drive or Dropbox link for their photos can be stored and automatically emailed to them.
+
+4. Custom Order Management (Cakes)
+Visual Reference Uploads: A feature allowing clients or staff to upload inspiration pictures, color palettes, or sketches directly to the order ticket for the bakers to follow.
+
+Dietary Requirement Flags: High-visibility tags for "Nut Free," "Gluten Free," or "Vegan" that appear on the job sheet to prevent cross-contamination in the kitchen.
+
+Staged Production Status: Updates specific to making the item, such as "Ingredients Prepped," "In Oven," "Cooling," "Decorating," and "Boxed for Delivery."
+
+5. Financials & Client Relations (CRM)
+Multi-Quote Generation: The ability to create a quote that separates "Rentals" (which require a security deposit) from "Consumables" (Cakes, which do not).
+
+Automated Contract Generation: Generates a single PDF contract that covers:
+
+Rental Agreement (Liability for broken deco/PA).
+
+Model Release (Rights to use the photos).
+
+Design Approval (Client sign-off on the cake design).
+
+Payment Milestones: specific tracking for "Booking Fee/Deposit" vs. "Final Balance," with automated email reminders sent 7 days before the event.
+
+6. Logistics & Delivery
+Route Optimization: A daily feature that groups deliveries by location. If the Cake and the Deco are going to the same venue, it creates a single "Load Sheet" for the van.
+
+Pick-Up Lists: A generated checklist for the driver for the day after the event, detailing exactly which chairs, cables, and stands need to be retrieved from the venue.
