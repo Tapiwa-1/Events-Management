@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { initDb } from './database.js';
+import { configureSecurity } from './middleware/security.js';
+import authRouter from './routes/auth.js';
 import eventsRouter from './routes/events.js';
 import inventoryRouter from './routes/inventory.js';
 import servicesRouter from './routes/services.js';
@@ -10,13 +13,20 @@ import logisticsRouter from './routes/logistics.js';
 const app = express();
 const port = 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
+
+configureSecurity(app);
 
 app.get('/', (req, res) => {
   res.send('Hello from Event Resource Planner API');
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/services', servicesRouter);

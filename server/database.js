@@ -82,6 +82,28 @@ export async function initDb() {
       due_date TEXT,
       FOREIGN KEY (event_id) REFERENCES events(id)
     );
+
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT DEFAULT 'customer', -- 'admin', 'staff', 'customer'
+      full_name TEXT,
+      is_active INTEGER DEFAULT 1,
+      last_login TEXT,
+      reset_token TEXT,
+      reset_token_expiry TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      action TEXT NOT NULL,
+      details TEXT,
+      ip_address TEXT,
+      timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
   `);
 
   console.log('Database initialized');

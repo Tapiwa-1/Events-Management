@@ -1,18 +1,8 @@
 import { initDb } from './database.js';
+import bcrypt from 'bcryptjs';
 
 async function seed() {
   const db = await initDb();
-
-  // Clear existing data (optional, but good for idempotent runs during dev)
-  // await db.exec('DELETE FROM inventory_bookings');
-  // await db.exec('DELETE FROM service_bookings');
-  // await db.exec('DELETE FROM cake_orders');
-  // await db.exec('DELETE FROM events');
-  // await db.exec('DELETE FROM clients');
-  // await db.exec('DELETE FROM inventory_items');
-  // await db.exec('DELETE FROM photographers');
-  // Actually, better to check if data exists first or just insert if not exists.
-  // For simplicity, I'll just check if tables are empty.
 
   const itemCount = await db.get('SELECT count(*) as count FROM inventory_items');
   if (itemCount.count === 0) {
@@ -44,6 +34,22 @@ async function seed() {
       ('John Doe', 'john@example.com', '555-0100');
     `);
     console.log('Seeded clients');
+  }
+
+  const userCount = await db.get('SELECT count(*) as count FROM users');
+  if (userCount.count === 0) {
+    const passwordHash = bcrypt.hashSync('password123', 10);
+    await db.run(`
+      INSERT INTO users (email, password_hash, role, full_name) VALUES
+      (?, ?, ?, ?),
+      (?, ?, ?, ?),
+      (?, ?, ?, ?)
+    `, [
+        'admin@example.com', passwordHash, 'admin', 'System Admin',
+        'staff@example.com', passwordHash, 'staff', 'Staff Member',
+        'client@example.com', passwordHash, 'customer', 'Client User'
+    ]);
+    console.log('Seeded users (password: password123)');
   }
 
   console.log('Seeding complete');
