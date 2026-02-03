@@ -30,6 +30,8 @@ export async function initDb() {
       location TEXT,
       type TEXT,
       status TEXT,
+      failure_reason TEXT,
+      amount_paid REAL DEFAULT 0,
       FOREIGN KEY (client_id) REFERENCES clients(id)
     );
 
