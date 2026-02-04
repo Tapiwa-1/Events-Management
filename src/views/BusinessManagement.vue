@@ -50,6 +50,45 @@
       </div>
     </div>
 
+    <!-- Sales / Income Book Section -->
+    <div v-else-if="selectedBook === 'sales_book'">
+      <div class="mb-4">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">SALES / INCOME BOOK – PA SYSTEM BUSINESS (Example)</h2>
+      </div>
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="px-6 py-3">Date</th>
+              <th scope="col" class="px-6 py-3">Client Name</th>
+              <th scope="col" class="px-6 py-3">Event Type</th>
+              <th scope="col" class="px-6 py-3">Event Date</th>
+              <th scope="col" class="px-6 py-3">Total Charge (USD)</th>
+              <th scope="col" class="px-6 py-3">Deposit</th>
+              <th scope="col" class="px-6 py-3">Balance Due</th>
+              <th scope="col" class="px-6 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(entry, index) in salesBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <td class="px-6 py-4">{{ entry.date }}</td>
+              <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
+              <td class="px-6 py-4">{{ entry.eventType }}</td>
+              <td class="px-6 py-4">{{ entry.eventDate }}</td>
+              <td class="px-6 py-4">{{ entry.total }}</td>
+              <td class="px-6 py-4">{{ entry.deposit }}</td>
+              <td class="px-6 py-4">{{ entry.balance }}</td>
+              <td class="px-6 py-4">
+                 <span :class="statusClass(entry.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                  {{ entry.status }}
+                 </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Other Sections -->
     <div v-else class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
         <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Coming Soon</h2>
@@ -75,4 +114,24 @@ const cashBookEntries = ref([
     { date: '07 Feb', description: 'Owner Withdrawal', moneyIn: null, moneyOut: 100, balance: 530 },
     { date: '08 Feb', description: 'PA Hire – Church Event', moneyIn: 120, moneyOut: null, balance: 650 },
 ]);
+
+const salesBookEntries = ref([
+    { date: '01 Feb', client: 'Tendai M', eventType: 'Wedding', eventDate: '03 Feb', total: 300, deposit: 100, balance: 200, status: 'Balance Paid' },
+    { date: '04 Feb', client: 'Rudo K', eventType: 'Birthday Party', eventDate: '05 Feb', total: 150, deposit: 50, balance: 100, status: 'Balance Paid' },
+    { date: '06 Feb', client: 'Church of Hope', eventType: 'Church Service', eventDate: '08 Feb', total: 120, deposit: 120, balance: 0, status: 'Fully Paid' },
+    { date: '08 Feb', client: 'Blessing T', eventType: 'Graduation', eventDate: '10 Feb', total: 200, deposit: 100, balance: 100, status: 'Owing' },
+    { date: '10 Feb', client: 'Farai N', eventType: 'Corporate Event', eventDate: '15 Feb', total: 400, deposit: 150, balance: 250, status: 'Owing' },
+]);
+
+const statusClass = (status) => {
+    switch(status) {
+        case 'Fully Paid':
+        case 'Balance Paid':
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+        case 'Owing':
+            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+        default:
+            return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+};
 </script>
