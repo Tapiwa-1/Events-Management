@@ -24,7 +24,7 @@
     <!-- Cash Book Section -->
     <div v-if="selectedBook === 'cash_book'">
       <div class="mb-4">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">CASH BOOK – PA SYSTEM BUSINESS (Example)</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">CASH BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -39,11 +39,14 @@
           </thead>
           <tbody>
             <tr v-for="(entry, index) in cashBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-              <td class="px-6 py-4">{{ entry.date }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.description }}</td>
-              <td class="px-6 py-4">{{ entry.moneyIn ? entry.moneyIn : '–' }}</td>
-              <td class="px-6 py-4">{{ entry.moneyOut ? entry.moneyOut : '–' }}</td>
-              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ entry.balance }}</td>
+              <td class="px-6 py-4">{{ entry.moneyIn ? formatCurrency(entry.moneyIn) : '–' }}</td>
+              <td class="px-6 py-4">{{ entry.moneyOut ? formatCurrency(entry.moneyOut) : '–' }}</td>
+              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.balance) }}</td>
+            </tr>
+            <tr v-if="cashBookEntries.length === 0">
+               <td colspan="5" class="px-6 py-4 text-center">No entries found.</td>
             </tr>
           </tbody>
         </table>
@@ -53,7 +56,7 @@
     <!-- Sales / Income Book Section -->
     <div v-else-if="selectedBook === 'sales_book'">
       <div class="mb-4">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">SALES / INCOME BOOK – PA SYSTEM BUSINESS (Example)</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">SALES / INCOME BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -71,18 +74,21 @@
           </thead>
           <tbody>
             <tr v-for="(entry, index) in salesBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-              <td class="px-6 py-4">{{ entry.date }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
               <td class="px-6 py-4">{{ entry.eventType }}</td>
-              <td class="px-6 py-4">{{ entry.eventDate }}</td>
-              <td class="px-6 py-4">{{ entry.total }}</td>
-              <td class="px-6 py-4">{{ entry.deposit }}</td>
-              <td class="px-6 py-4">{{ entry.balance }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.eventDate) }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.total) }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.deposit) }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.balance) }}</td>
               <td class="px-6 py-4">
                  <span :class="statusClass(entry.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
                   {{ entry.status }}
                  </span>
               </td>
+            </tr>
+             <tr v-if="salesBookEntries.length === 0">
+               <td colspan="8" class="px-6 py-4 text-center">No sales found.</td>
             </tr>
           </tbody>
         </table>
@@ -92,7 +98,7 @@
     <!-- Debtors Book Section -->
     <div v-else-if="selectedBook === 'debtors_book'">
       <div class="mb-4">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">DEBTORS BOOK – PA SYSTEM BUSINESS (Example)</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">DEBTORS BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -112,16 +118,19 @@
             <tr v-for="(entry, index) in debtorsBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
               <td class="px-6 py-4">{{ entry.eventType }}</td>
-              <td class="px-6 py-4">{{ entry.eventDate }}</td>
-              <td class="px-6 py-4">{{ entry.total }}</td>
-              <td class="px-6 py-4">{{ entry.paid }}</td>
-              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ entry.balance }}</td>
-              <td class="px-6 py-4">{{ entry.dueDate }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.eventDate) }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.total) }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.paid) }}</td>
+              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.balance) }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.dueDate) }}</td>
               <td class="px-6 py-4">
                  <span :class="statusClass(entry.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
                   {{ entry.status }}
                  </span>
               </td>
+            </tr>
+            <tr v-if="debtorsBookEntries.length === 0">
+               <td colspan="8" class="px-6 py-4 text-center">No debtors found.</td>
             </tr>
           </tbody>
         </table>
@@ -131,7 +140,7 @@
     <!-- Owner's Drawings Book Section -->
     <div v-else-if="selectedBook === 'owners_drawings'">
       <div class="mb-4">
-          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">OWNER’S DRAWINGS BOOK – PA SYSTEM BUSINESS (Example)</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">OWNER’S DRAWINGS BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -146,11 +155,14 @@
           </thead>
           <tbody>
             <tr v-for="(entry, index) in ownersDrawingsEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-              <td class="px-6 py-4">{{ entry.date }}</td>
-              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ entry.amount }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
+              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.amount) }}</td>
               <td class="px-6 py-4">{{ entry.method }}</td>
               <td class="px-6 py-4">{{ entry.reason }}</td>
               <td class="px-6 py-4">{{ entry.notes }}</td>
+            </tr>
+             <tr v-if="ownersDrawingsEntries.length === 0">
+               <td colspan="5" class="px-6 py-4 text-center">No drawings found.</td>
             </tr>
           </tbody>
         </table>
@@ -167,44 +179,124 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import api from '../api';
 
 const selectedBook = ref('cash_book');
+const events = ref([]);
+const transactions = ref([]);
 
-const cashBookEntries = ref([
-    { date: '01 Feb', description: 'Opening Balance', moneyIn: 300, moneyOut: null, balance: 300 },
-    { date: '02 Feb', description: 'PA Hire – Wedding (Deposit)', moneyIn: 100, moneyOut: null, balance: 400 },
-    { date: '03 Feb', description: 'Fuel (Event Transport)', moneyIn: null, moneyOut: 30, balance: 370 },
-    { date: '03 Feb', description: 'PA Hire – Wedding (Balance)', moneyIn: 200, moneyOut: null, balance: 570 },
-    { date: '04 Feb', description: 'Speaker Repair', moneyIn: null, moneyOut: 50, balance: 520 },
-    { date: '05 Feb', description: 'PA Hire – Birthday Party', moneyIn: 150, moneyOut: null, balance: 670 },
-    { date: '06 Feb', description: 'Facebook Ads', moneyIn: null, moneyOut: 40, balance: 630 },
-    { date: '07 Feb', description: 'Owner Withdrawal', moneyIn: null, moneyOut: 100, balance: 530 },
-    { date: '08 Feb', description: 'PA Hire – Church Event', moneyIn: 120, moneyOut: null, balance: 650 },
-]);
+const loadData = async () => {
+  try {
+    const [eventsRes, transactionsRes] = await Promise.all([
+      api.get('/events'),
+      api.get('/business/transactions')
+    ]);
+    events.value = eventsRes.data;
+    transactions.value = transactionsRes.data;
+  } catch (err) {
+    console.error('Failed to load business data', err);
+  }
+};
 
-const salesBookEntries = ref([
-    { date: '01 Feb', client: 'Tendai M', eventType: 'Wedding', eventDate: '03 Feb', total: 300, deposit: 100, balance: 200, status: 'Balance Paid' },
-    { date: '04 Feb', client: 'Rudo K', eventType: 'Birthday Party', eventDate: '05 Feb', total: 150, deposit: 50, balance: 100, status: 'Balance Paid' },
-    { date: '06 Feb', client: 'Church of Hope', eventType: 'Church Service', eventDate: '08 Feb', total: 120, deposit: 120, balance: 0, status: 'Fully Paid' },
-    { date: '08 Feb', client: 'Blessing T', eventType: 'Graduation', eventDate: '10 Feb', total: 200, deposit: 100, balance: 100, status: 'Owing' },
-    { date: '10 Feb', client: 'Farai N', eventType: 'Corporate Event', eventDate: '15 Feb', total: 400, deposit: 150, balance: 250, status: 'Owing' },
-]);
+onMounted(() => {
+  loadData();
+});
 
-const debtorsBookEntries = ref([
-    { client: 'Blessing T', eventType: 'Graduation', eventDate: '10 Feb', total: 200, paid: 100, balance: 100, dueDate: '10 Feb', status: 'Owing' },
-    { client: 'Farai N', eventType: 'Corporate Event', eventDate: '15 Feb', total: 400, paid: 150, balance: 250, dueDate: '14 Feb', status: 'Overdue' },
-    { client: 'Memory D', eventType: 'Wedding', eventDate: '20 Feb', total: 350, paid: 200, balance: 150, dueDate: '19 Feb', status: 'Owing' },
-    { client: 'Church of Hope', eventType: 'Church Service', eventDate: '08 Feb', total: 120, paid: 0, balance: 120, dueDate: '08 Feb', status: 'Overdue' },
-]);
+const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    // Handle both ISO strings and simple dates like '01 Feb' if manual (though backend should standardize)
+    // For now assuming backend sends ISO or parseable dates
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString();
+};
 
-const ownersDrawingsEntries = ref([
-    { date: '02 Feb', amount: 50, method: 'Cash', reason: 'Personal transport', notes: 'From weekend hire' },
-    { date: '05 Feb', amount: 100, method: 'EcoCash', reason: 'Household expenses', notes: 'After wedding event' },
-    { date: '09 Feb', amount: 80, method: 'Cash', reason: 'Personal use', notes: 'Weekend income' },
-    { date: '12 Feb', amount: 150, method: 'Bank Transfer', reason: 'School fees', notes: 'Planned withdrawal' },
-    { date: '16 Feb', amount: 60, method: 'Cash', reason: 'Groceries', notes: 'Small draw' },
-]);
+const formatCurrency = (val) => {
+    return (parseFloat(val) || 0).toFixed(2);
+};
+
+// --- Computed Properties for Books ---
+
+const salesBookEntries = computed(() => {
+    return events.value.map(e => ({
+        date: e.date, // Booking date? Or event date. Using event date.
+        client: e.client_name || 'Unknown',
+        eventType: e.type || e.name,
+        eventDate: e.date,
+        total: e.total_cost,
+        deposit: e.amount_paid,
+        balance: e.total_cost - e.amount_paid,
+        status: (e.total_cost - e.amount_paid) <= 0 ? 'Fully Paid' : 'Owing' // Simplified
+    }));
+});
+
+const debtorsBookEntries = computed(() => {
+    return salesBookEntries.value.filter(e => e.balance > 0).map(e => ({
+        ...e,
+        paid: e.deposit,
+        dueDate: e.eventDate, // Assuming due date is event date
+        status: new Date(e.eventDate) < new Date() ? 'Overdue' : 'Owing'
+    }));
+});
+
+const ownersDrawingsEntries = computed(() => {
+    return transactions.value.filter(t => t.category === 'drawing');
+});
+
+const cashBookEntries = computed(() => {
+    const entries = [];
+    let runningBalance = 0;
+
+    // 1. Event Incomes (Money In)
+    events.value.forEach(e => {
+        if (e.amount_paid > 0) {
+            entries.push({
+                date: e.date, // Ideally this should be the payment date, but we only have event date
+                description: `Payment: ${e.name}`,
+                moneyIn: e.amount_paid,
+                moneyOut: null,
+                timestamp: new Date(e.date).getTime()
+            });
+        }
+    });
+
+    // 2. Event Expenses (Money Out - Transport)
+    events.value.forEach(e => {
+        if (e.transport_cost > 0) {
+            entries.push({
+                date: e.date,
+                description: `Transport: ${e.name}`,
+                moneyIn: null,
+                moneyOut: e.transport_cost,
+                timestamp: new Date(e.date).getTime()
+            });
+        }
+    });
+
+    // 3. Manual Transactions
+    transactions.value.forEach(t => {
+        entries.push({
+            date: t.date,
+            description: t.description,
+            moneyIn: t.type === 'in' ? t.amount : null,
+            moneyOut: t.type === 'out' ? t.amount : null,
+            timestamp: new Date(t.date).getTime()
+        });
+    });
+
+    // Sort by date
+    entries.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Calculate running balance
+    return entries.map(e => {
+        const income = e.moneyIn || 0;
+        const expense = e.moneyOut || 0;
+        runningBalance += (income - expense);
+        return { ...e, balance: runningBalance };
+    });
+});
+
 
 const statusClass = (status) => {
     switch(status) {

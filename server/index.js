@@ -9,6 +9,7 @@ import inventoryRouter from './routes/inventory.js';
 import servicesRouter from './routes/services.js';
 import cakesRouter from './routes/cakes.js';
 import logisticsRouter from './routes/logistics.js';
+import businessRouter from './routes/business.js';
 
 const app = express();
 const port = 3000;
@@ -32,6 +33,7 @@ app.use('/api/inventory', inventoryRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/cakes', cakesRouter);
 app.use('/api/logistics', logisticsRouter);
+app.use('/api/business', businessRouter);
 
 // Initialize DB before starting server
 initDb().then(() => {

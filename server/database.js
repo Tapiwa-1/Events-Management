@@ -108,6 +108,17 @@ export async function initDb() {
       timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+    CREATE TABLE IF NOT EXISTS transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      description TEXT,
+      amount REAL DEFAULT 0,
+      type TEXT, -- 'in', 'out'
+      category TEXT, -- 'drawing', 'expense', 'income', 'adjustment'
+      method TEXT,
+      notes TEXT
+    );
   `);
 
   console.log('Database initialized');
