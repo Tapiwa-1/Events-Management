@@ -92,17 +92,20 @@
                         <div>
                             <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
                             <select v-model="form.category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+                                <option value="Spotify">Spotify</option>
                                 <option value="Data">Data</option>
-                                <option value="Rent">Rent</option>
+                                <option value="PA Maintenance">PA Maintenance</option>
                                 <option value="Car Maintenance">Car Maintenance</option>
                                 <option value="Ads">Ads</option>
-                                <option value="Assistant Fee">Assistant Fee</option>
+                                <option value="Assistant Salary">Assistant Salary</option>
+                                <option value="Owners Pay">Owners Pay</option>
+                                <option value="Fuel">Fuel</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
 
                         <!-- Conditional Assistant Fields -->
-                        <div v-if="form.category === 'Assistant Fee'" class="space-y-4 border-l-2 border-blue-500 pl-4">
+                        <div v-if="form.category === 'Assistant Salary'" class="space-y-4 border-l-2 border-blue-500 pl-4">
                             <div>
                                 <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Assistant Name</label>
                                 <select v-model="form.assistant_name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
@@ -154,7 +157,7 @@ const totalRevenue = ref(0);
 
 const form = ref({
     date: new Date().toISOString().split('T')[0],
-    category: 'Data',
+    category: 'Spotify',
     amount: 0,
     description: '',
     assistant_name: '',
@@ -188,7 +191,7 @@ const loadData = async () => {
 const openModal = () => {
     form.value = {
         date: new Date().toISOString().split('T')[0],
-        category: 'Data',
+        category: 'Spotify',
         amount: 0,
         description: '',
         assistant_name: '',
