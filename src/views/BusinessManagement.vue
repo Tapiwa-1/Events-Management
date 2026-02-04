@@ -128,6 +128,35 @@
       </div>
     </div>
 
+    <!-- Owner's Drawings Book Section -->
+    <div v-else-if="selectedBook === 'owners_drawings'">
+      <div class="mb-4">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">OWNER’S DRAWINGS BOOK – PA SYSTEM BUSINESS (Example)</h2>
+      </div>
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="px-6 py-3">Date</th>
+              <th scope="col" class="px-6 py-3">Amount (USD)</th>
+              <th scope="col" class="px-6 py-3">Method</th>
+              <th scope="col" class="px-6 py-3">Reason</th>
+              <th scope="col" class="px-6 py-3">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(entry, index) in ownersDrawingsEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <td class="px-6 py-4">{{ entry.date }}</td>
+              <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ entry.amount }}</td>
+              <td class="px-6 py-4">{{ entry.method }}</td>
+              <td class="px-6 py-4">{{ entry.reason }}</td>
+              <td class="px-6 py-4">{{ entry.notes }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Other Sections -->
     <div v-else class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
         <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Coming Soon</h2>
@@ -167,6 +196,14 @@ const debtorsBookEntries = ref([
     { client: 'Farai N', eventType: 'Corporate Event', eventDate: '15 Feb', total: 400, paid: 150, balance: 250, dueDate: '14 Feb', status: 'Overdue' },
     { client: 'Memory D', eventType: 'Wedding', eventDate: '20 Feb', total: 350, paid: 200, balance: 150, dueDate: '19 Feb', status: 'Owing' },
     { client: 'Church of Hope', eventType: 'Church Service', eventDate: '08 Feb', total: 120, paid: 0, balance: 120, dueDate: '08 Feb', status: 'Overdue' },
+]);
+
+const ownersDrawingsEntries = ref([
+    { date: '02 Feb', amount: 50, method: 'Cash', reason: 'Personal transport', notes: 'From weekend hire' },
+    { date: '05 Feb', amount: 100, method: 'EcoCash', reason: 'Household expenses', notes: 'After wedding event' },
+    { date: '09 Feb', amount: 80, method: 'Cash', reason: 'Personal use', notes: 'Weekend income' },
+    { date: '12 Feb', amount: 150, method: 'Bank Transfer', reason: 'School fees', notes: 'Planned withdrawal' },
+    { date: '16 Feb', amount: 60, method: 'Cash', reason: 'Groceries', notes: 'Small draw' },
 ]);
 
 const statusClass = (status) => {
