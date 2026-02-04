@@ -23,8 +23,11 @@
 
     <!-- Cash Book Section -->
     <div v-if="selectedBook === 'cash_book'">
-      <div class="mb-4">
+      <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">CASH BOOK</h2>
+          <button @click="showExpenseModal = true" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
+            Add Expense
+          </button>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -158,7 +161,7 @@
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.amount) }}</td>
               <td class="px-6 py-4">{{ entry.method }}</td>
-              <td class="px-6 py-4">{{ entry.reason }}</td>
+              <td class="px-6 py-4">{{ entry.description }}</td>
               <td class="px-6 py-4">{{ entry.notes }}</td>
             </tr>
              <tr v-if="ownersDrawingsEntries.length === 0">
@@ -175,16 +178,88 @@
         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">This section is currently under development.</p>
     </div>
 
+    <!-- Add Expense Modal -->
+    <div v-if="showExpenseModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full flex justify-center items-center bg-gray-900 bg-opacity-50">
+      <div class="relative w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" @click="showExpenseModal = false" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="px-6 py-6 lg:px-8">
+                <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Add New Expense</h3>
+                <form class="space-y-6" @submit.prevent="submitExpense">
+                    <div>
+                        <label for="date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
+                        <input type="date" v-model="expenseForm.date" id="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                    <div>
+                        <label for="category" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category</label>
+                        <select id="category" v-model="expenseForm.category" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                            <option value="Spotify">Spotify</option>
+                            <option value="Data">Data</option>
+                            <option value="PA Maintenance">PA Maintenance</option>
+                            <option value="Car Maintenance">Car Maintenance</option>
+                            <option value="Ads">Ads</option>
+                            <option value="Assistant Salary">Assistant Salary</option>
+                            <option value="Owners Pay">Owners Pay</option>
+                            <option value="Fuel">Fuel</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div v-if="expenseForm.category === 'Assistant Salary'">
+                        <label for="assistant" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Assistant</label>
+                        <select id="assistant" v-model="expenseForm.assistant" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                            <option value="Takudzwa">Takudzwa</option>
+                            <option value="Innocent">Innocent</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                        <input type="text" v-model="expenseForm.description" id="description" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="e.g. Monthly subscription" required>
+                    </div>
+
+                    <div>
+                        <label for="amount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount ($)</label>
+                        <input type="number" step="0.01" v-model.number="expenseForm.amount" id="amount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                     <div>
+                        <label for="notes" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Notes (Optional)</label>
+                        <textarea v-model="expenseForm.notes" id="notes" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Add Expense</button>
+                </form>
+            </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, reactive } from 'vue';
 import api from '../api';
 
 const selectedBook = ref('cash_book');
 const events = ref([]);
 const transactions = ref([]);
+const showExpenseModal = ref(false);
+
+const expenseForm = reactive({
+    date: new Date().toISOString().split('T')[0],
+    category: 'Spotify',
+    assistant: '',
+    description: '',
+    amount: 0,
+    notes: ''
+});
 
 const loadData = async () => {
   try {
@@ -202,6 +277,55 @@ const loadData = async () => {
 onMounted(() => {
   loadData();
 });
+
+const submitExpense = async () => {
+    try {
+        let fullDescription = expenseForm.category;
+        if (expenseForm.category === 'Assistant Salary' && expenseForm.assistant) {
+            fullDescription += ` - ${expenseForm.assistant}`;
+        }
+        fullDescription += `: ${expenseForm.description}`;
+
+        const payload = {
+            date: expenseForm.date,
+            description: fullDescription,
+            amount: expenseForm.amount,
+            type: 'out',
+            category: 'expense',
+            method: 'Cash', // Defaulting to Cash for now
+            notes: expenseForm.notes
+        };
+
+        // If it's owner's pay, maybe categorize as drawing? The prompt says "expense like... Owners Pay".
+        // But owner's pay is typically a drawing.
+        // If I categorize as 'expense', it goes to cash book. If 'drawing', it goes to drawing book.
+        // Prompt says "In the same cash book I want to be able to add expenses... Owners Pay".
+        // So it should appear in Cash Book.
+        // My Cash Book logic includes ALL transactions. So 'drawing' or 'expense' category works.
+        // Let's stick to 'expense' category for these specific ones unless it's strictly a drawing.
+        // Actually, for Owner's Drawings Book to work, I need category='drawing'.
+        // If the user selects "Owner's Pay", I should probably save it as category='drawing' so it appears in BOTH Cash Book and Drawings Book.
+
+        if (expenseForm.category === 'Owners Pay') {
+            payload.category = 'drawing';
+        }
+
+        await api.post('/business/transactions', payload);
+
+        // Reset form and reload
+        showExpenseModal.value = false;
+        expenseForm.description = '';
+        expenseForm.amount = 0;
+        expenseForm.notes = '';
+        expenseForm.category = 'Spotify';
+        expenseForm.assistant = '';
+
+        await loadData();
+    } catch (err) {
+        console.error('Failed to add expense', err);
+        alert('Failed to add expense');
+    }
+};
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '-';
