@@ -1,19 +1,19 @@
 <template>
   <div>
-    <h1 class="text-3xl font-bold mb-6">Inventory & Booking</h1>
+    <h1 class="text-3xl font-bold mb-6 dark:text-white">Inventory & Booking</h1>
 
     <!-- Check Availability -->
-    <div class="bg-white p-6 rounded shadow mb-8">
-      <div class="flex gap-4 items-end">
-        <div class="flex-1">
-            <label class="block text-sm font-bold mb-1">Start Time</label>
-            <input v-model="filter.start_time" type="datetime-local" class="border p-2 rounded w-full" />
+    <div class="block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mb-8">
+      <div class="flex gap-4 items-end flex-wrap">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Start Time</label>
+            <input v-model="filter.start_time" type="datetime-local" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
         </div>
-        <div class="flex-1">
-            <label class="block text-sm font-bold mb-1">End Time</label>
-            <input v-model="filter.end_time" type="datetime-local" class="border p-2 rounded w-full" />
+        <div class="flex-1 min-w-[200px]">
+            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">End Time</label>
+            <input v-model="filter.end_time" type="datetime-local" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
         </div>
-        <button @click="loadInventory" class="bg-blue-600 text-white p-2 px-6 rounded hover:bg-blue-700 h-10">
+        <button @click="loadInventory" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 h-[42px]">
           Check Availability
         </button>
       </div>
@@ -21,28 +21,28 @@
 
     <!-- Inventory List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="item in items" :key="item.id" class="bg-white p-6 rounded shadow">
+      <div v-for="item in items" :key="item.id" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
         <div class="flex justify-between items-start mb-4">
             <div>
-                <h3 class="text-lg font-bold">{{ item.name }}</h3>
-                <span class="text-xs bg-gray-200 px-2 py-1 rounded capitalize">{{ item.type }}</span>
+                <h3 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ item.name }}</h3>
+                <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300 capitalize">{{ item.type }}</span>
             </div>
             <div class="text-right">
-                <div class="text-2xl font-bold" :class="item.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
+                <div class="text-2xl font-bold" :class="item.available_quantity > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'">
                     {{ item.available_quantity }}
                 </div>
-                <div class="text-xs text-gray-500">Available</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Available</div>
             </div>
         </div>
-        <div class="text-sm text-gray-600 mb-4">
+        <div class="font-normal text-gray-700 dark:text-gray-400 mb-4 text-sm">
             Total Stock: {{ item.total_quantity }} <br>
             Buffer: {{ item.buffer_time_hours }}h
         </div>
 
-        <div v-if="filter.start_time && filter.end_time" class="border-t pt-4">
+        <div v-if="filter.start_time && filter.end_time" class="border-t pt-4 dark:border-gray-600">
             <div class="flex gap-2">
-                <input v-model.number="bookingQty[item.id]" type="number" min="1" :max="item.available_quantity" class="border p-1 rounded w-20" placeholder="Qty">
-                <select v-model="selectedEventId" class="border p-1 rounded flex-1">
+                <input v-model.number="bookingQty[item.id]" type="number" min="1" :max="item.available_quantity" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-20 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Qty">
+                <select v-model="selectedEventId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white flex-1">
                     <option value="" disabled>Select Event</option>
                     <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }}</option>
                 </select>
@@ -50,12 +50,12 @@
             <button
                 @click="bookItem(item)"
                 :disabled="!bookingQty[item.id] || !selectedEventId || item.available_quantity < 1"
-                class="mt-2 w-full bg-green-600 text-white py-1 rounded hover:bg-green-700 disabled:opacity-50"
+                class="mt-3 w-full text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800 disabled:opacity-50"
             >
                 Book Now
             </button>
         </div>
-        <div v-else class="text-sm text-orange-500 italic">
+        <div v-else class="text-sm text-orange-500 dark:text-orange-400 italic">
             Select dates to book
         </div>
       </div>

@@ -1,42 +1,49 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-      <h2 class="text-2xl font-bold mb-6 text-center">Sign In</h2>
-      <form @submit.prevent="handleLogin">
-        <div class="mb-4">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
-          <input
-            v-model="email"
-            id="email"
-            type="email"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          >
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+      <form class="space-y-6" @submit.prevent="handleLogin">
+        <h5 class="text-xl font-medium text-gray-900 dark:text-white">Sign in to our platform</h5>
+
+        <div>
+            <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
+            <input
+                v-model="email"
+                type="email"
+                name="email"
+                id="email"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                placeholder="name@company.com"
+                required
+            >
         </div>
-        <div class="mb-6">
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
-          <input
-            v-model="password"
-            id="password"
-            type="password"
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          >
+
+        <div>
+            <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your password</label>
+            <input
+                v-model="password"
+                type="password"
+                name="password"
+                id="password"
+                placeholder="••••••••"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+                required
+            >
         </div>
-        <div v-if="authStore.error" class="mb-4 text-red-500 text-sm">
+
+        <div v-if="authStore.error" class="text-sm text-red-500 font-medium">
             {{ authStore.error }}
         </div>
-        <div class="flex items-center justify-between">
-          <button
-            :disabled="authStore.loading"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+
+        <button
             type="submit"
-          >
-            {{ authStore.loading ? 'Loading...' : 'Sign In' }}
-          </button>
-          <router-link to="/register" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-            Create Account
-          </router-link>
+            :disabled="authStore.loading"
+            class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 disabled:opacity-50"
+        >
+            {{ authStore.loading ? 'Signing in...' : 'Login to your account' }}
+        </button>
+
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-300">
+            Not registered? <router-link to="/register" class="text-blue-700 hover:underline dark:text-blue-500">Create account</router-link>
         </div>
       </form>
     </div>

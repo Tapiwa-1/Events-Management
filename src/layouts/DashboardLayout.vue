@@ -1,7 +1,7 @@
 <template>
-  <div class="flex">
+  <div class="antialiased bg-gray-50 dark:bg-gray-900 min-h-screen">
     <Sidebar />
-    <main class="flex-1 p-8 bg-gray-50 h-screen overflow-y-auto">
+    <main class="p-4 sm:ml-64 pt-6 h-auto">
       <router-view></router-view>
     </main>
   </div>
