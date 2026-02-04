@@ -24,6 +24,11 @@
                     <span class="ml-3">Inventory</span>
                 </router-link>
             </li>
+            <li>
+                <router-link to="/business" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <span class="ml-3">Business Management</span>
+                </router-link>
+            </li>
             <li v-if="authStore.isStaff">
                 <router-link to="/logistics" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                     <span class="ml-3">Logistics</span>

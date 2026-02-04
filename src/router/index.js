@@ -9,6 +9,7 @@ import Events from '../views/Events.vue';
 import Inventory from '../views/Inventory.vue';
 import Logistics from '../views/Logistics.vue';
 import Profile from '../views/Profile.vue';
+import BusinessManagement from '../views/BusinessManagement.vue';
 import AuditLogs from '../views/admin/AuditLogs.vue';
 
 const routes = [
@@ -22,6 +23,7 @@ const routes = [
         { path: '', component: Dashboard },
         { path: 'events', component: Events },
         { path: 'inventory', component: Inventory },
+        { path: 'business', component: BusinessManagement },
         { path: 'logistics', component: Logistics, meta: { role: 'staff' } },
         { path: 'profile', component: Profile },
         { path: 'admin/logs', component: AuditLogs, meta: { role: 'admin' } },
