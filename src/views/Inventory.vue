@@ -41,6 +41,9 @@
 
         <!-- Tab Content: Inventory Register -->
         <div v-if="activeTab === 'register'">
+             <div class="mb-4 text-right">
+                <button @click="openAddInventoryModal()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add Item</button>
+            </div>
              <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -51,6 +54,7 @@
                             <th scope="col" class="px-6 py-3">Condition</th>
                             <th scope="col" class="px-6 py-3">Location</th>
                             <th scope="col" class="px-6 py-3">Last Checked</th>
+                            <th scope="col" class="px-6 py-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -61,6 +65,9 @@
                             <td class="px-6 py-4">{{ item.condition }}</td>
                             <td class="px-6 py-4">{{ item.location }}</td>
                             <td class="px-6 py-4">{{ formatDate(item.last_checked) }}</td>
+                            <td class="px-6 py-4">
+                                <button @click="openEditInventoryModal(item)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -185,6 +192,58 @@
 
     <!-- Modals -->
 
+    <!-- Inventory Add/Edit Modal -->
+    <div v-if="showInventoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
+        <div class="bg-white dark:bg-gray-700 rounded-lg shadow w-full max-w-md p-6">
+            <h3 class="text-xl font-medium mb-4 dark:text-white">{{ isEditingInventory ? 'Edit Inventory Item' : 'Add New Item' }}</h3>
+            <form @submit.prevent="submitInventoryItem" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium dark:text-white">Item Name</label>
+                    <input type="text" v-model="inventoryForm.name" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium dark:text-white">Category</label>
+                    <select v-model="inventoryForm.category" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
+                        <option value="Fixed Asset">Fixed Asset</option>
+                        <option value="Operational">Operational</option>
+                        <option value="Consumable">Consumable</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium dark:text-white">Total Quantity</label>
+                    <input type="number" v-model.number="inventoryForm.total_quantity" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium dark:text-white">Buffer Time (Hours)</label>
+                    <input type="number" v-model.number="inventoryForm.buffer_time_hours" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium dark:text-white">Condition</label>
+                    <select v-model="inventoryForm.condition" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
+                        <option value="New">New</option>
+                        <option value="Excellent">Excellent</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
+                    </select>
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium dark:text-white">Location</label>
+                    <input type="text" v-model="inventoryForm.location" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" placeholder="e.g. Store, Gig Bag">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium dark:text-white">Last Checked</label>
+                    <input type="date" v-model="inventoryForm.last_checked" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="showInventoryModal = false" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Movement Update Modal -->
     <div v-if="showMovementModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
         <div class="bg-white dark:bg-gray-700 rounded-lg shadow w-full max-w-md p-6">
@@ -307,6 +366,19 @@ const events = ref([]);
 const selectedEventId = ref('');
 
 // Modals & Forms
+const showInventoryModal = ref(false);
+const isEditingInventory = ref(false);
+const inventoryForm = reactive({
+    id: null,
+    name: '',
+    category: 'Fixed Asset',
+    total_quantity: 0,
+    buffer_time_hours: 0,
+    condition: 'Good',
+    location: '',
+    last_checked: ''
+});
+
 const showMovementModal = ref(false);
 const selectedLog = ref(null);
 const movementForm = reactive({
@@ -398,6 +470,52 @@ watch(selectedCategory, () => {
 });
 
 // Actions
+const openAddInventoryModal = () => {
+    isEditingInventory.value = false;
+    inventoryForm.id = null;
+    inventoryForm.name = '';
+    inventoryForm.category = 'Fixed Asset';
+    inventoryForm.total_quantity = 0;
+    inventoryForm.buffer_time_hours = 0;
+    inventoryForm.condition = 'Good';
+    inventoryForm.location = '';
+    inventoryForm.last_checked = new Date().toISOString().split('T')[0];
+    showInventoryModal.value = true;
+};
+
+const openEditInventoryModal = (item) => {
+    isEditingInventory.value = true;
+    inventoryForm.id = item.id;
+    inventoryForm.name = item.name;
+    inventoryForm.category = item.category;
+    inventoryForm.total_quantity = item.total_quantity;
+    inventoryForm.buffer_time_hours = item.buffer_time_hours;
+    inventoryForm.condition = item.condition;
+    inventoryForm.location = item.location;
+    inventoryForm.last_checked = item.last_checked;
+    showInventoryModal.value = true;
+};
+
+const submitInventoryItem = async () => {
+    try {
+        const payload = {
+            ...inventoryForm,
+            type: selectedCategory.value // Ensure correct type is sent
+        };
+
+        if (isEditingInventory.value) {
+            await api.put(`/inventory/${inventoryForm.id}`, payload);
+        } else {
+            await api.post('/inventory', payload);
+        }
+        showInventoryModal.value = false;
+        loadInventory();
+    } catch (err) {
+        console.error(err);
+        alert('Failed to save item');
+    }
+};
+
 const openMovementModal = (log) => {
     selectedLog.value = log;
     movementForm.qty_out = log.qty_out || log.quantity;

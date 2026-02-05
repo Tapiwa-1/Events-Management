@@ -41,6 +41,39 @@ router.get('/', async (req, res) => {
   res.json(itemsWithAvailability);
 });
 
+// Create new inventory item
+router.post('/', async (req, res) => {
+    const { name, type, category, total_quantity, buffer_time_hours, condition, location, last_checked } = req.body;
+    const db = await getDb();
+    try {
+        const result = await db.run(
+            `INSERT INTO inventory_items (name, type, category, total_quantity, buffer_time_hours, condition, location, last_checked)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [name, type, category, total_quantity, buffer_time_hours, condition, location, last_checked]
+        );
+        res.json({ id: result.lastID, success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update inventory item
+router.put('/:id', async (req, res) => {
+    const { name, category, total_quantity, buffer_time_hours, condition, location, last_checked } = req.body;
+    const db = await getDb();
+    try {
+        await db.run(
+            `UPDATE inventory_items SET
+             name = ?, category = ?, total_quantity = ?, buffer_time_hours = ?, condition = ?, location = ?, last_checked = ?
+             WHERE id = ?`,
+            [name, category, total_quantity, buffer_time_hours, condition, location, last_checked, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Book an item
 router.post('/book', async (req, res) => {
   const { event_id, item_id, quantity, start_time, end_time } = req.body;
