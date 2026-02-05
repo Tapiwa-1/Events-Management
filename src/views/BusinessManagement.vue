@@ -172,6 +172,49 @@
       </div>
     </div>
 
+    <!-- Loan / Advances Book Section -->
+    <div v-else-if="selectedBook === 'loan_advances'">
+      <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">LOANS BOOK</h2>
+          <button @click="showLoanModal = true" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            Add Loan
+          </button>
+      </div>
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="px-6 py-3">Borrower</th>
+              <th scope="col" class="px-6 py-3">Type</th>
+              <th scope="col" class="px-6 py-3">Date Given</th>
+              <th scope="col" class="px-6 py-3">Amount (USD)</th>
+              <th scope="col" class="px-6 py-3">Interest</th>
+              <th scope="col" class="px-6 py-3">Due Date</th>
+              <th scope="col" class="px-6 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(entry, index) in loans" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.borrower }}</td>
+              <td class="px-6 py-4">{{ entry.type }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.date_given) }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.amount) }}</td>
+              <td class="px-6 py-4">{{ entry.interest }}</td>
+              <td class="px-6 py-4">{{ formatDate(entry.due_date) }}</td>
+              <td class="px-6 py-4">
+                 <span :class="statusClass(entry.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                  {{ entry.status }}
+                 </span>
+              </td>
+            </tr>
+             <tr v-if="loans.length === 0">
+               <td colspan="7" class="px-6 py-4 text-center">No loans found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Other Sections -->
     <div v-else class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
         <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Coming Soon</h2>
@@ -240,6 +283,58 @@
       </div>
     </div>
 
+    <!-- Add Loan Modal -->
+    <div v-if="showLoanModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full flex justify-center items-center bg-gray-900 bg-opacity-50">
+      <div class="relative w-full max-w-md max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <button type="button" @click="showLoanModal = false" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="sr-only">Close modal</span>
+            </button>
+            <div class="px-6 py-6 lg:px-8">
+                <h3 class="mb-4 text-xl font-medium text-gray-900 dark:text-white">Add New Loan</h3>
+                <form class="space-y-6" @submit.prevent="submitLoan">
+                    <div>
+                        <label for="borrower" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Borrower Name</label>
+                        <input type="text" v-model="loanForm.borrower" id="borrower" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                    <div>
+                        <label for="loanType" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Type</label>
+                        <select id="loanType" v-model="loanForm.type" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                            <option value="Staff Loan">Staff Loan</option>
+                            <option value="Personal Loan">Personal Loan (from business)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="dateGiven" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date Given</label>
+                        <input type="date" v-model="loanForm.date_given" id="dateGiven" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                    <div>
+                        <label for="loanAmount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Amount ($)</label>
+                        <input type="number" step="0.01" v-model.number="loanForm.amount" id="loanAmount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                    <div>
+                        <label for="interest" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Interest</label>
+                        <input type="text" v-model="loanForm.interest" id="interest" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" placeholder="e.g. 0% or 5%">
+                    </div>
+
+                    <div>
+                        <label for="dueDate" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Due Date</label>
+                        <input type="date" v-model="loanForm.due_date" id="dueDate" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required>
+                    </div>
+
+                    <button type="submit" class="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Add Loan</button>
+                </form>
+            </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -250,7 +345,9 @@ import api from '../api';
 const selectedBook = ref('cash_book');
 const events = ref([]);
 const transactions = ref([]);
+const loans = ref([]);
 const showExpenseModal = ref(false);
+const showLoanModal = ref(false);
 
 const expenseForm = reactive({
     date: new Date().toISOString().split('T')[0],
@@ -261,14 +358,26 @@ const expenseForm = reactive({
     notes: ''
 });
 
+const loanForm = reactive({
+    borrower: '',
+    type: 'Staff Loan',
+    date_given: new Date().toISOString().split('T')[0],
+    amount: 0,
+    interest: '0%',
+    due_date: '',
+    status: 'Active'
+});
+
 const loadData = async () => {
   try {
-    const [eventsRes, transactionsRes] = await Promise.all([
+    const [eventsRes, transactionsRes, loansRes] = await Promise.all([
       api.get('/events'),
-      api.get('/business/transactions')
+      api.get('/business/transactions'),
+      api.get('/business/loans')
     ]);
     events.value = eventsRes.data;
     transactions.value = transactionsRes.data;
+    loans.value = loansRes.data;
   } catch (err) {
     console.error('Failed to load business data', err);
   }
@@ -296,16 +405,6 @@ const submitExpense = async () => {
             notes: expenseForm.notes
         };
 
-        // If it's owner's pay, maybe categorize as drawing? The prompt says "expense like... Owners Pay".
-        // But owner's pay is typically a drawing.
-        // If I categorize as 'expense', it goes to cash book. If 'drawing', it goes to drawing book.
-        // Prompt says "In the same cash book I want to be able to add expenses... Owners Pay".
-        // So it should appear in Cash Book.
-        // My Cash Book logic includes ALL transactions. So 'drawing' or 'expense' category works.
-        // Let's stick to 'expense' category for these specific ones unless it's strictly a drawing.
-        // Actually, for Owner's Drawings Book to work, I need category='drawing'.
-        // If the user selects "Owner's Pay", I should probably save it as category='drawing' so it appears in BOTH Cash Book and Drawings Book.
-
         if (expenseForm.category === 'Owners Pay') {
             payload.category = 'drawing';
         }
@@ -327,10 +426,26 @@ const submitExpense = async () => {
     }
 };
 
+const submitLoan = async () => {
+    try {
+        await api.post('/business/loans', loanForm);
+
+        // Reset form and reload
+        showLoanModal.value = false;
+        loanForm.borrower = '';
+        loanForm.amount = 0;
+        loanForm.interest = '0%';
+        loanForm.due_date = '';
+
+        await loadData();
+    } catch (err) {
+        console.error('Failed to add loan', err);
+        alert('Failed to add loan');
+    }
+};
+
 const formatDate = (dateStr) => {
     if (!dateStr) return '-';
-    // Handle both ISO strings and simple dates like '01 Feb' if manual (though backend should standardize)
-    // For now assuming backend sends ISO or parseable dates
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString();
@@ -376,7 +491,7 @@ const cashBookEntries = computed(() => {
     events.value.forEach(e => {
         if (e.amount_paid > 0) {
             entries.push({
-                date: e.date, // Ideally this should be the payment date, but we only have event date
+                date: e.date,
                 description: `Payment: ${e.name}`,
                 moneyIn: e.amount_paid,
                 moneyOut: null,
@@ -409,6 +524,17 @@ const cashBookEntries = computed(() => {
         });
     });
 
+    // 4. Loans Given (Money Out)
+    loans.value.forEach(l => {
+        entries.push({
+            date: l.date_given,
+            description: `Loan to ${l.borrower}`,
+            moneyIn: null,
+            moneyOut: l.amount,
+            timestamp: new Date(l.date_given).getTime()
+        });
+    });
+
     // Sort by date
     entries.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -426,6 +552,7 @@ const statusClass = (status) => {
     switch(status) {
         case 'Fully Paid':
         case 'Balance Paid':
+        case 'Active': // For loans
             return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
         case 'Owing':
         case 'Overdue':

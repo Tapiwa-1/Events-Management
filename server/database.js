@@ -119,6 +119,17 @@ export async function initDb() {
       method TEXT,
       notes TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS loans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      borrower TEXT NOT NULL,
+      type TEXT, -- 'Staff Loan', 'Personal Loan', etc.
+      date_given TEXT NOT NULL,
+      amount REAL DEFAULT 0,
+      interest TEXT, -- e.g. '0%', '5%'
+      due_date TEXT,
+      status TEXT DEFAULT 'Active' -- 'Active', 'Repaid', 'Written Off'
+    );
   `);
 
   console.log('Database initialized');
