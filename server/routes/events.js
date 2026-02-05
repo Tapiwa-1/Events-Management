@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { client_id, name, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost } = req.body;
+  const { client_id, name, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost, inventory } = req.body;
   const db = await getDb();
   try {
     const result = await db.run(
@@ -22,7 +22,23 @@ router.post('/', async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [client_id, name, date, start_time, end_time, location, type, status || 'planned', amount_paid || 0, total_cost || 0, transport_cost || 0]
     );
-    res.json({ id: result.lastID, ...req.body });
+
+    const eventId = result.lastID;
+
+    // Handle inventory bookings
+    if (inventory && Array.isArray(inventory)) {
+        for (const item of inventory) {
+            if (item.quantity > 0) {
+                await db.run(
+                    `INSERT INTO inventory_bookings (event_id, item_id, quantity, start_time, end_time, status)
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [eventId, item.item_id, item.quantity, start_time || date, end_time || date, 'reserved']
+                );
+            }
+        }
+    }
+
+    res.json({ id: eventId, ...req.body });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
