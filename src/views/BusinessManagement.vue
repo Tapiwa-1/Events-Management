@@ -21,34 +21,59 @@
       </div>
     </div>
 
+    <!-- Toolbar: Search & Page Size (Visible for all active books) -->
+    <div v-if="selectedBook !== 'maintenance_log'" class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
+        <!-- Search -->
+        <div class="relative w-full md:w-64">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+            </div>
+            <input type="text" v-model="searchQuery" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search...">
+        </div>
+
+        <!-- Right Side: Items Per Page & Action Button -->
+        <div class="flex items-center space-x-4 w-full md:w-auto">
+             <select v-model="itemsPerPage" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <option :value="5">5 per page</option>
+                <option :value="10">10 per page</option>
+                <option :value="20">20 per page</option>
+                <option :value="50">50 per page</option>
+            </select>
+
+            <button v-if="selectedBook === 'cash_book'" @click="showExpenseModal = true" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800 whitespace-nowrap">
+                Add Expense
+            </button>
+             <button v-if="selectedBook === 'loan_advances'" @click="showLoanModal = true" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 whitespace-nowrap">
+                Add Loan
+            </button>
+        </div>
+    </div>
+
     <!-- Cash Book Section -->
     <div v-if="selectedBook === 'cash_book'">
-      <div class="flex justify-between items-center mb-4">
+      <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">CASH BOOK</h2>
-          <button @click="showExpenseModal = true" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
-            Add Expense
-          </button>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-              <th scope="col" class="px-6 py-3">Date</th>
-              <th scope="col" class="px-6 py-3">Description</th>
-              <th scope="col" class="px-6 py-3">Money In (USD)</th>
-              <th scope="col" class="px-6 py-3">Money Out (USD)</th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('description')">Description <span v-if="sortKey==='description'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('moneyIn')">Money In (USD) <span v-if="sortKey==='moneyIn'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('moneyOut')">Money Out (USD) <span v-if="sortKey==='moneyOut'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
               <th scope="col" class="px-6 py-3">Balance (USD)</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(entry, index) in cashBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.description }}</td>
               <td class="px-6 py-4">{{ entry.moneyIn ? formatCurrency(entry.moneyIn) : '–' }}</td>
               <td class="px-6 py-4">{{ entry.moneyOut ? formatCurrency(entry.moneyOut) : '–' }}</td>
               <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.balance) }}</td>
             </tr>
-            <tr v-if="cashBookEntries.length === 0">
+            <tr v-if="paginatedData.length === 0">
                <td colspan="5" class="px-6 py-4 text-center">No entries found.</td>
             </tr>
           </tbody>
@@ -58,25 +83,25 @@
 
     <!-- Sales / Income Book Section -->
     <div v-else-if="selectedBook === 'sales_book'">
-      <div class="mb-4">
+      <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">SALES / INCOME BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-              <th scope="col" class="px-6 py-3">Date</th>
-              <th scope="col" class="px-6 py-3">Client Name</th>
-              <th scope="col" class="px-6 py-3">Event Type</th>
-              <th scope="col" class="px-6 py-3">Event Date</th>
-              <th scope="col" class="px-6 py-3">Total Charge (USD)</th>
-              <th scope="col" class="px-6 py-3">Deposit</th>
-              <th scope="col" class="px-6 py-3">Balance Due</th>
-              <th scope="col" class="px-6 py-3">Status</th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('client')">Client Name <span v-if="sortKey==='client'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventType')">Event Type <span v-if="sortKey==='eventType'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventDate')">Event Date <span v-if="sortKey==='eventDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total')">Total (USD) <span v-if="sortKey==='total'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('deposit')">Deposit <span v-if="sortKey==='deposit'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('balance')">Balance <span v-if="sortKey==='balance'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(entry, index) in salesBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
               <td class="px-6 py-4">{{ entry.eventType }}</td>
@@ -90,7 +115,7 @@
                  </span>
               </td>
             </tr>
-             <tr v-if="salesBookEntries.length === 0">
+             <tr v-if="paginatedData.length === 0">
                <td colspan="8" class="px-6 py-4 text-center">No sales found.</td>
             </tr>
           </tbody>
@@ -100,25 +125,25 @@
 
     <!-- Debtors Book Section -->
     <div v-else-if="selectedBook === 'debtors_book'">
-      <div class="mb-4">
+      <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">DEBTORS BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-              <th scope="col" class="px-6 py-3">Client Name</th>
-              <th scope="col" class="px-6 py-3">Event Type</th>
-              <th scope="col" class="px-6 py-3">Event Date</th>
-              <th scope="col" class="px-6 py-3">Total Charge (USD)</th>
-              <th scope="col" class="px-6 py-3">Paid</th>
-              <th scope="col" class="px-6 py-3">Balance Owing</th>
-              <th scope="col" class="px-6 py-3">Due Date</th>
-              <th scope="col" class="px-6 py-3">Status</th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('client')">Client Name <span v-if="sortKey==='client'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventType')">Event Type <span v-if="sortKey==='eventType'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventDate')">Event Date <span v-if="sortKey==='eventDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total')">Total (USD) <span v-if="sortKey==='total'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('paid')">Paid <span v-if="sortKey==='paid'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('balance')">Balance Owing <span v-if="sortKey==='balance'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('dueDate')">Due Date <span v-if="sortKey==='dueDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(entry, index) in debtorsBookEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
               <td class="px-6 py-4">{{ entry.eventType }}</td>
               <td class="px-6 py-4">{{ formatDate(entry.eventDate) }}</td>
@@ -132,7 +157,7 @@
                  </span>
               </td>
             </tr>
-            <tr v-if="debtorsBookEntries.length === 0">
+            <tr v-if="paginatedData.length === 0">
                <td colspan="8" class="px-6 py-4 text-center">No debtors found.</td>
             </tr>
           </tbody>
@@ -142,29 +167,29 @@
 
     <!-- Owner's Drawings Book Section -->
     <div v-else-if="selectedBook === 'owners_drawings'">
-      <div class="mb-4">
+      <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">OWNER’S DRAWINGS BOOK</h2>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-              <th scope="col" class="px-6 py-3">Date</th>
-              <th scope="col" class="px-6 py-3">Amount (USD)</th>
-              <th scope="col" class="px-6 py-3">Method</th>
-              <th scope="col" class="px-6 py-3">Reason</th>
-              <th scope="col" class="px-6 py-3">Notes</th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('amount')">Amount (USD) <span v-if="sortKey==='amount'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('method')">Method <span v-if="sortKey==='method'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('description')">Reason <span v-if="sortKey==='description'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('notes')">Notes <span v-if="sortKey==='notes'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(entry, index) in ownersDrawingsEntries" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.amount) }}</td>
               <td class="px-6 py-4">{{ entry.method }}</td>
               <td class="px-6 py-4">{{ entry.description }}</td>
               <td class="px-6 py-4">{{ entry.notes }}</td>
             </tr>
-             <tr v-if="ownersDrawingsEntries.length === 0">
+             <tr v-if="paginatedData.length === 0">
                <td colspan="5" class="px-6 py-4 text-center">No drawings found.</td>
             </tr>
           </tbody>
@@ -174,30 +199,27 @@
 
     <!-- Loan / Advances Book Section -->
     <div v-else-if="selectedBook === 'loan_advances'">
-      <div class="flex justify-between items-center mb-4">
+      <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">LOANS BOOK</h2>
-          <button @click="showLoanModal = true" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-            Add Loan
-          </button>
       </div>
       <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-              <th scope="col" class="px-6 py-3">Borrower</th>
-              <th scope="col" class="px-6 py-3">Type</th>
-              <th scope="col" class="px-6 py-3">Date Given</th>
-              <th scope="col" class="px-6 py-3">Amount (USD)</th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('borrower')">Borrower <span v-if="sortKey==='borrower'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('type')">Type <span v-if="sortKey==='type'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date_given')">Date Given <span v-if="sortKey==='date_given'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('amount')">Amount (USD) <span v-if="sortKey==='amount'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
               <th scope="col" class="px-6 py-3">Paid (USD)</th>
               <th scope="col" class="px-6 py-3">Balance (USD)</th>
               <th scope="col" class="px-6 py-3">Interest</th>
-              <th scope="col" class="px-6 py-3">Due Date</th>
-              <th scope="col" class="px-6 py-3">Status</th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('due_date')">Due Date <span v-if="sortKey==='due_date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
               <th scope="col" class="px-6 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(entry, index) in loans" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+            <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.borrower }}</td>
               <td class="px-6 py-4">{{ entry.type }}</td>
               <td class="px-6 py-4">{{ formatDate(entry.date_given) }}</td>
@@ -215,7 +237,7 @@
                   <button v-if="entry.status === 'Active'" @click="openRepaymentModal(entry)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Repay</button>
               </td>
             </tr>
-             <tr v-if="loans.length === 0">
+             <tr v-if="paginatedData.length === 0">
                <td colspan="10" class="px-6 py-4 text-center">No loans found.</td>
             </tr>
           </tbody>
@@ -223,8 +245,23 @@
       </div>
     </div>
 
+    <!-- Pagination Controls (Visible if supported book and more than 0 items) -->
+    <div v-if="selectedBook !== 'maintenance_log' && filteredData.length > 0" class="flex flex-col items-center mt-4">
+        <span class="text-sm text-gray-700 dark:text-gray-400">
+            Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ Math.min(currentPage * itemsPerPage, filteredData.length) }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ filteredData.length }}</span> Entries
+        </span>
+        <div class="inline-flex mt-2 xs:mt-0">
+            <button @click="prevPage" :disabled="currentPage === 1" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 rounded-l hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
+                Prev
+            </button>
+            <button @click="nextPage" :disabled="currentPage === totalPages" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 border-0 border-l border-blue-700 rounded-r hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
+                Next
+            </button>
+        </div>
+    </div>
+
     <!-- Other Sections -->
-    <div v-else class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+    <div v-if="selectedBook === 'maintenance_log'" class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
         <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Coming Soon</h2>
         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">This section is currently under development.</p>
     </div>
@@ -391,7 +428,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, reactive } from 'vue';
+import { ref, onMounted, computed, reactive, watch } from 'vue';
 import api from '../api';
 
 const selectedBook = ref('cash_book');
@@ -403,6 +440,21 @@ const showExpenseModal = ref(false);
 const showLoanModal = ref(false);
 const showRepaymentModal = ref(false);
 const selectedLoan = ref(null);
+
+// Table Controls State
+const searchQuery = ref('');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const sortKey = ref(null);
+const sortOrder = ref('asc');
+
+// Reset state when changing books
+watch(selectedBook, () => {
+    searchQuery.value = '';
+    currentPage.value = 1;
+    sortKey.value = null;
+    sortOrder.value = 'asc';
+});
 
 const expenseForm = reactive({
     date: new Date().toISOString().split('T')[0],
@@ -510,7 +562,6 @@ const submitLoan = async () => {
 
 const openRepaymentModal = (loan) => {
     selectedLoan.value = loan;
-    // Pre-fill amount with balance
     repaymentForm.amount = (loan.amount - loan.amount_paid).toFixed(2);
     repaymentForm.date = new Date().toISOString().split('T')[0];
     repaymentForm.notes = '';
@@ -540,18 +591,18 @@ const formatCurrency = (val) => {
     return (parseFloat(val) || 0).toFixed(2);
 };
 
-// --- Computed Properties for Books ---
+// --- Data Preparation for Computed Properties ---
 
 const salesBookEntries = computed(() => {
     return events.value.map(e => ({
-        date: e.date, // Booking date? Or event date. Using event date.
+        date: e.date,
         client: e.client_name || 'Unknown',
         eventType: e.type || e.name,
         eventDate: e.date,
         total: e.total_cost,
         deposit: e.amount_paid,
         balance: e.total_cost - e.amount_paid,
-        status: (e.total_cost - e.amount_paid) <= 0 ? 'Fully Paid' : 'Owing' // Simplified
+        status: (e.total_cost - e.amount_paid) <= 0 ? 'Fully Paid' : 'Owing'
     }));
 });
 
@@ -559,7 +610,7 @@ const debtorsBookEntries = computed(() => {
     return salesBookEntries.value.filter(e => e.balance > 0).map(e => ({
         ...e,
         paid: e.deposit,
-        dueDate: e.eventDate, // Assuming due date is event date
+        dueDate: e.eventDate,
         status: new Date(e.eventDate) < new Date() ? 'Overdue' : 'Owing'
     }));
 });
@@ -572,7 +623,6 @@ const cashBookEntries = computed(() => {
     const entries = [];
     let runningBalance = 0;
 
-    // 1. Event Incomes (Money In)
     events.value.forEach(e => {
         if (e.amount_paid > 0) {
             entries.push({
@@ -585,7 +635,6 @@ const cashBookEntries = computed(() => {
         }
     });
 
-    // 2. Event Expenses (Money Out - Transport)
     events.value.forEach(e => {
         if (e.transport_cost > 0) {
             entries.push({
@@ -598,7 +647,6 @@ const cashBookEntries = computed(() => {
         }
     });
 
-    // 3. Manual Transactions
     transactions.value.forEach(t => {
         entries.push({
             date: t.date,
@@ -609,7 +657,6 @@ const cashBookEntries = computed(() => {
         });
     });
 
-    // 4. Loans Given (Money Out)
     loans.value.forEach(l => {
         entries.push({
             date: l.date_given,
@@ -620,7 +667,6 @@ const cashBookEntries = computed(() => {
         });
     });
 
-    // 5. Loan Repayments (Money In)
     loanRepayments.value.forEach(r => {
         entries.push({
             date: r.date,
@@ -631,10 +677,8 @@ const cashBookEntries = computed(() => {
         });
     });
 
-    // Sort by date
     entries.sort((a, b) => a.timestamp - b.timestamp);
 
-    // Calculate running balance
     return entries.map(e => {
         const income = e.moneyIn || 0;
         const expense = e.moneyOut || 0;
@@ -643,13 +687,92 @@ const cashBookEntries = computed(() => {
     });
 });
 
+// --- Generic Table Logic (Search, Sort, Paginate) ---
+
+const getSearchableFields = (book) => {
+    switch(book) {
+        case 'cash_book': return ['date', 'description', 'balance'];
+        case 'sales_book': return ['date', 'client', 'eventType', 'status'];
+        case 'debtors_book': return ['client', 'eventType', 'status'];
+        case 'owners_drawings': return ['date', 'description', 'notes', 'method'];
+        case 'loan_advances': return ['borrower', 'type', 'status'];
+        default: return [];
+    }
+};
+
+const currentBookSource = computed(() => {
+     switch(selectedBook.value) {
+        case 'cash_book': return cashBookEntries.value;
+        case 'sales_book': return salesBookEntries.value;
+        case 'debtors_book': return debtorsBookEntries.value;
+        case 'owners_drawings': return ownersDrawingsEntries.value;
+        case 'loan_advances': return loans.value;
+        default: return [];
+    }
+});
+
+const filteredData = computed(() => {
+    let data = currentBookSource.value;
+    if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase();
+        const fields = getSearchableFields(selectedBook.value);
+        data = data.filter(item => {
+            return fields.some(field => {
+                const val = item[field];
+                return String(val || '').toLowerCase().includes(query);
+            });
+        });
+    }
+    return data;
+});
+
+const sortedData = computed(() => {
+    let data = [...filteredData.value];
+    if (sortKey.value) {
+        data.sort((a, b) => {
+            let aVal = a[sortKey.value];
+            let bVal = b[sortKey.value];
+
+            // Simple type check for strings vs numbers
+            if (typeof aVal === 'string' && typeof bVal === 'string') {
+                 aVal = aVal.toLowerCase();
+                 bVal = bVal.toLowerCase();
+            }
+
+            if (aVal === bVal) return 0;
+            let result = (aVal > bVal) ? 1 : -1;
+            return sortOrder.value === 'asc' ? result : -result;
+        });
+    }
+    return data;
+});
+
+const paginatedData = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return sortedData.value.slice(start, end);
+});
+
+const totalPages = computed(() => Math.ceil(filteredData.value.length / itemsPerPage.value));
+
+const sortBy = (key) => {
+    if (sortKey.value === key) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortKey.value = key;
+        sortOrder.value = 'asc';
+    }
+};
+
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
 
 const statusClass = (status) => {
     switch(status) {
         case 'Fully Paid':
         case 'Balance Paid':
-        case 'Active': // For loans
-        case 'Repaid': // For loans
+        case 'Active':
+        case 'Repaid':
             return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
         case 'Owing':
         case 'Overdue':
