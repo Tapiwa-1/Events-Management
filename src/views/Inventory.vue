@@ -1,62 +1,44 @@
 <template>
-  <div>
-    <h1 class="text-3xl font-bold mb-6 dark:text-white">Inventory & Booking</h1>
+  <div class="p-4">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold dark:text-white mb-4 md:mb-0">Manage Inventory</h1>
 
-    <div id="accordion-inventory" data-accordion="collapse">
-      <!-- PA System -->
-      <h2 id="accordion-inventory-heading-1">
-        <button type="button" @click="toggle(1)" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 rounded-t-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3" :class="{'bg-gray-100 dark:bg-gray-800': active === 1}">
-          <span>PA System</span>
-          <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6" :class="{'rotate-0': active === 1}">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-          </svg>
-        </button>
-      </h2>
-      <div id="accordion-inventory-body-1" :class="{'hidden': active !== 1}">
-        <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
-          <p class="mb-2 text-gray-500 dark:text-gray-400">Coming Soon</p>
-        </div>
+      <!-- Dropdown for selecting the inventory type -->
+      <div class="w-full md:w-64">
+        <label for="inventory-select" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Inventory</label>
+        <select
+          id="inventory-select"
+          v-model="selectedCategory"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        >
+          <option value="pa">PA System</option>
+          <option value="photography">Photography</option>
+          <option value="decor">Decor</option>
+        </select>
       </div>
+    </div>
 
-      <!-- Photography -->
-      <h2 id="accordion-inventory-heading-2">
-        <button type="button" @click="toggle(2)" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-b-0 border-gray-200 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3" :class="{'bg-gray-100 dark:bg-gray-800': active === 2}">
-          <span>Photography</span>
-          <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6" :class="{'rotate-0': active === 2}">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-          </svg>
-        </button>
-      </h2>
-      <div id="accordion-inventory-body-2" :class="{'hidden': active !== 2}">
-        <div class="p-5 border border-b-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900">
-          <p class="mb-2 text-gray-500 dark:text-gray-400">Coming Soon</p>
-        </div>
-      </div>
-
-      <!-- Decor -->
-      <h2 id="accordion-inventory-heading-3">
-        <button type="button" @click="toggle(3)" class="flex items-center justify-between w-full p-5 font-medium rtl:text-right text-gray-500 border border-gray-200 rounded-b-xl focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-800 dark:border-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 gap-3" :class="{'rounded-b-none border-b-0 bg-gray-100 dark:bg-gray-800': active === 3}">
-          <span>Decor</span>
-          <svg data-accordion-icon class="w-3 h-3 rotate-180 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6" :class="{'rotate-0': active === 3}">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
-          </svg>
-        </button>
-      </h2>
-      <div id="accordion-inventory-body-3" :class="{'hidden': active !== 3}">
-        <div class="p-5 border border-t-0 border-gray-200 dark:border-gray-700 dark:bg-gray-900 rounded-b-xl">
-          <p class="mb-2 text-gray-500 dark:text-gray-400">Coming Soon</p>
-        </div>
-      </div>
+    <!-- Coming Soon Section -->
+    <div class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+        <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Coming Soon</h2>
+        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">
+          Inventory management for <span class="font-semibold">{{ categoryLabel }}</span> is currently under development.
+        </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const active = ref(null);
+const selectedCategory = ref('pa');
 
-const toggle = (id) => {
-  active.value = active.value === id ? null : id;
-};
+const categoryLabel = computed(() => {
+  switch (selectedCategory.value) {
+    case 'pa': return 'PA System';
+    case 'photography': return 'Photography';
+    case 'decor': return 'Decor';
+    default: return '';
+  }
+});
 </script>
