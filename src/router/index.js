@@ -9,11 +9,7 @@ import Events from '../views/Events.vue';
 import Inventory from '../views/Inventory.vue';
 import Logistics from '../views/Logistics.vue';
 import Profile from '../views/Profile.vue';
-<<<<<<< HEAD
-import CashBook from '../views/CashBook.vue';
-=======
 import BusinessManagement from '../views/BusinessManagement.vue';
->>>>>>> feat/business-management-panel-2154364554946012169
 import AuditLogs from '../views/admin/AuditLogs.vue';
 
 const routes = [
@@ -27,11 +23,7 @@ const routes = [
         { path: '', component: Dashboard },
         { path: 'events', component: Events },
         { path: 'inventory', component: Inventory },
-<<<<<<< HEAD
-        { path: 'cash-book', component: CashBook },
-=======
         { path: 'business', component: BusinessManagement },
->>>>>>> feat/business-management-panel-2154364554946012169
         { path: 'logistics', component: Logistics, meta: { role: 'staff' } },
         { path: 'profile', component: Profile },
         { path: 'admin/logs', component: AuditLogs, meta: { role: 'admin' } },

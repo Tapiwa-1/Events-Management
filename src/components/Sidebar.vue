@@ -25,13 +25,8 @@
                 </router-link>
             </li>
             <li>
-<<<<<<< HEAD
-                <router-link to="/cash-book" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Cash Book</span>
-=======
                 <router-link to="/business" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                     <span class="ml-3">Business Management</span>
->>>>>>> feat/business-management-panel-2154364554946012169
                 </router-link>
             </li>
             <li v-if="authStore.isStaff">
