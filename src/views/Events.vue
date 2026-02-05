@@ -92,6 +92,34 @@
                         <input v-model="form.location" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
                     </div>
 
+                    <div class="col-span-2">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Service Type</label>
+                        <select v-model="form.type" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
+                            <option value="">Select Service</option>
+                            <option value="PA System">PA System</option>
+                            <option value="Photography">Photography</option>
+                            <option value="Deco">Deco</option>
+                        </select>
+                    </div>
+
+                    <div v-if="form.type === 'PA System'" class="col-span-2 border p-4 rounded-lg dark:border-gray-600">
+                        <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Select Inventory</h4>
+                        <div v-if="inventoryItems.length === 0" class="text-sm text-gray-500">No inventory available.</div>
+                        <div v-else class="grid grid-cols-1 gap-2">
+                            <div v-for="item in inventoryItems" :key="item.id" class="flex items-center justify-between p-2 border rounded dark:border-gray-600">
+                                <div class="flex-1">
+                                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ item.name }}</span>
+                                    <span class="text-xs text-gray-500 ml-2">({{ item.available_quantity }} available)</span>
+                                </div>
+                                <input type="number" min="0" :max="item.available_quantity" v-model.number="selectedInventory[item.id]" class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-1 dark:bg-gray-600 dark:border-gray-500 dark:text-white" placeholder="Qty">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="['Photography', 'Deco'].includes(form.type)" class="col-span-2 p-4 bg-yellow-50 dark:bg-yellow-900 rounded-lg">
+                        <p class="text-center text-yellow-800 dark:text-yellow-200 font-medium">Coming Soon</p>
+                    </div>
+
                     <!-- Financials -->
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="total_cost">Total Cost ($)</label>
@@ -155,6 +183,8 @@ const events = ref([]);
 const showModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
+const inventoryItems = ref([]);
+const selectedInventory = ref({});
 
 const form = ref({
   name: '',
@@ -162,6 +192,7 @@ const form = ref({
   start_time: '',
   end_time: '',
   location: '',
+  type: '',
   status: 'planned',
   total_cost: 0,
   amount_paid: 0,
@@ -172,6 +203,15 @@ const form = ref({
 const remaining = computed(() => {
     return (parseFloat(form.value.total_cost) || 0) - (parseFloat(form.value.amount_paid) || 0);
 });
+
+const loadInventory = async () => {
+    try {
+        const res = await api.get('/inventory'); // Corrected path to verify with api setup
+        inventoryItems.value = res.data;
+    } catch (err) {
+        console.error('Failed to load inventory', err);
+    }
+};
 
 const loadEvents = async () => {
   try {
@@ -202,12 +242,14 @@ const statusClass = (status) => {
 const openModal = () => {
   isEditing.value = false;
   editingId.value = null;
+  selectedInventory.value = {};
   form.value = {
       name: '',
       date: new Date().toISOString().split('T')[0],
       start_time: '',
       end_time: '',
       location: '',
+      type: '',
       status: 'planned',
       total_cost: 0,
       amount_paid: 0,
@@ -237,6 +279,16 @@ const handleSubmit = async () => {
         transport_cost: Number(form.value.transport_cost) || 0
     };
 
+    if (form.value.type === 'PA System') {
+        const inventoryPayload = [];
+        for (const [itemId, qty] of Object.entries(selectedInventory.value)) {
+            if (qty > 0) {
+                inventoryPayload.push({ item_id: Number(itemId), quantity: Number(qty) });
+            }
+        }
+        payload.inventory = inventoryPayload;
+    }
+
     if (isEditing.value) {
         await api.put(`/events/${editingId.value}`, payload);
     } else {
@@ -252,5 +304,6 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   loadEvents();
+  loadInventory();
 });
 </script>
