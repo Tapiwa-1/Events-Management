@@ -10,8 +10,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // If 401, redirect to login (unless already there)
-      if (window.location.pathname !== '/login') {
+      // If 401, redirect to login (unless already there or on register page)
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
          window.location.href = '/login';
       }
     }

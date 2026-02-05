@@ -5,7 +5,11 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   const db = await getDb();
-  const events = await db.all('SELECT * FROM events');
+  const events = await db.all(`
+    SELECT events.*, clients.name as client_name
+    FROM events
+    LEFT JOIN clients ON events.client_id = clients.id
+  `);
   res.json(events);
 });
 
