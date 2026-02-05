@@ -9,11 +9,7 @@ import inventoryRouter from './routes/inventory.js';
 import servicesRouter from './routes/services.js';
 import cakesRouter from './routes/cakes.js';
 import logisticsRouter from './routes/logistics.js';
-<<<<<<< HEAD
-import expensesRouter from './routes/expenses.js';
-=======
 import businessRouter from './routes/business.js';
->>>>>>> feat/business-management-panel-2154364554946012169
 
 const app = express();
 const port = 3000;
@@ -37,11 +33,7 @@ app.use('/api/inventory', inventoryRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/cakes', cakesRouter);
 app.use('/api/logistics', logisticsRouter);
-<<<<<<< HEAD
-app.use('/api/expenses', expensesRouter);
-=======
 app.use('/api/business', businessRouter);
->>>>>>> feat/business-management-panel-2154364554946012169
 
 // Initialize DB before starting server
 initDb().then(() => {

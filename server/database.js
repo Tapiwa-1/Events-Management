@@ -109,18 +109,6 @@ export async function initDb() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
-<<<<<<< HEAD
-    CREATE TABLE IF NOT EXISTS expenses (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT NOT NULL,
-      category TEXT NOT NULL,
-      amount REAL NOT NULL,
-      description TEXT,
-      assistant_name TEXT,
-      event_id INTEGER,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (event_id) REFERENCES events(id)
-=======
     CREATE TABLE IF NOT EXISTS transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
@@ -151,7 +139,6 @@ export async function initDb() {
       method TEXT,
       notes TEXT,
       FOREIGN KEY (loan_id) REFERENCES loans(id)
->>>>>>> feat/business-management-panel-2154364554946012169
     );
   `);
 
