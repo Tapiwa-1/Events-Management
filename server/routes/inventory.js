@@ -5,29 +5,25 @@ const router = express.Router();
 
 // Get inventory with availability check
 router.get('/', async (req, res) => {
-  const { start_time, end_time } = req.query;
+  const { start_time, end_time, type } = req.query;
   const db = await getDb();
 
-  // Get all items
-  const items = await db.all('SELECT * FROM inventory_items');
+  let query = 'SELECT * FROM inventory_items';
+  const params = [];
+
+  if (type) {
+    query += ' WHERE type = ?';
+    params.push(type);
+  }
+
+  const items = await db.all(query, params);
 
   if (!start_time || !end_time) {
-    // If no date range, just return total stock
     return res.json(items.map(i => ({ ...i, available_quantity: i.total_quantity })));
   }
 
-  // Calculate availability
   const availabilityPromises = items.map(async (item) => {
-    // Find bookings that overlap with requested [start_time, end_time]
-    // Overlap condition: BookingStart < ReqEnd AND (BookingEnd + Buffer) > ReqStart
-
-    // We only care about active bookings (not returned? or just future scheduled?)
-    // If we are planning, we look at scheduled times.
-    // If returned=1, it means the event is over. But buffer might still apply.
-    // The safest is to rely on scheduled times for planning conflicts.
-    // Assuming status != 'cancelled'
-
-    const query = `
+    const q = `
       SELECT SUM(quantity) as booked_qty
       FROM inventory_bookings
       WHERE item_id = ?
@@ -36,7 +32,7 @@ router.get('/', async (req, res) => {
       AND status != 'cancelled'
     `;
 
-    const result = await db.get(query, [item.id, end_time, item.buffer_time_hours, start_time]);
+    const result = await db.get(q, [item.id, end_time, item.buffer_time_hours, start_time]);
     const bookedQty = result.booked_qty || 0;
     return { ...item, available_quantity: item.total_quantity - bookedQty };
   });
@@ -45,19 +41,49 @@ router.get('/', async (req, res) => {
   res.json(itemsWithAvailability);
 });
 
+// Create new inventory item
+router.post('/', async (req, res) => {
+    const { name, type, category, total_quantity, buffer_time_hours, condition, location, last_checked } = req.body;
+    const db = await getDb();
+    try {
+        const result = await db.run(
+            `INSERT INTO inventory_items (name, type, category, total_quantity, buffer_time_hours, condition, location, last_checked)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [name, type, category, total_quantity, buffer_time_hours, condition, location, last_checked]
+        );
+        res.json({ id: result.lastID, success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update inventory item
+router.put('/:id', async (req, res) => {
+    const { name, category, total_quantity, buffer_time_hours, condition, location, last_checked } = req.body;
+    const db = await getDb();
+    try {
+        await db.run(
+            `UPDATE inventory_items SET
+             name = ?, category = ?, total_quantity = ?, buffer_time_hours = ?, condition = ?, location = ?, last_checked = ?
+             WHERE id = ?`,
+            [name, category, total_quantity, buffer_time_hours, condition, location, last_checked, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Book an item
 router.post('/book', async (req, res) => {
   const { event_id, item_id, quantity, start_time, end_time } = req.body;
   const db = await getDb();
 
-  // Check availability first
   const item = await db.get('SELECT * FROM inventory_items WHERE id = ?', item_id);
   if (!item) {
     return res.status(404).json({ error: 'Item not found' });
   }
 
-  // Logic to check if we have enough stock
-  // Calculate booked quantity for this period
   const query = `
       SELECT SUM(quantity) as booked_qty
       FROM inventory_bookings
@@ -85,33 +111,151 @@ router.post('/book', async (req, res) => {
   }
 });
 
-// Return / Update booking
+// Update booking (Return, Move, Update Status)
 router.put('/booking/:id', async (req, res) => {
-    const { status, returned, damaged } = req.body;
+    const { status, returned, damaged, qty_out, qty_back, missing, condition_return } = req.body;
     const db = await getDb();
 
     const updates = [];
     const params = [];
 
-    if (status !== undefined) {
-        updates.push('status = ?');
-        params.push(status);
-    }
-    if (returned !== undefined) {
-        updates.push('returned = ?');
-        params.push(returned);
-    }
-    if (damaged !== undefined) {
-        updates.push('damaged = ?');
-        params.push(damaged);
-    }
+    if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+    if (returned !== undefined) { updates.push('returned = ?'); params.push(returned); }
+    if (damaged !== undefined) { updates.push('damaged = ?'); params.push(damaged); }
+    if (qty_out !== undefined) { updates.push('qty_out = ?'); params.push(qty_out); }
+    if (qty_back !== undefined) { updates.push('qty_back = ?'); params.push(qty_back); }
+    if (missing !== undefined) { updates.push('missing = ?'); params.push(missing); }
+    if (condition_return !== undefined) { updates.push('condition_return = ?'); params.push(condition_return); }
 
     if (updates.length === 0) return res.json({message: 'No updates'});
 
     params.push(req.params.id);
 
-    await db.run(`UPDATE inventory_bookings SET ${updates.join(', ')} WHERE id = ?`, params);
-    res.json({ success: true });
+    try {
+        await db.run(`UPDATE inventory_bookings SET ${updates.join(', ')} WHERE id = ?`, params);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get Movement Log (Bookings for an event or all)
+router.get('/movement', async (req, res) => {
+    const { event_id } = req.query;
+    const db = await getDb();
+
+    let query = `
+        SELECT ib.*, ii.name as item_name, e.name as event_name, e.date as event_date
+        FROM inventory_bookings ib
+        JOIN inventory_items ii ON ib.item_id = ii.id
+        JOIN events e ON ib.event_id = e.id
+    `;
+    const params = [];
+
+    if (event_id) {
+        query += ' WHERE ib.event_id = ?';
+        params.push(event_id);
+    }
+
+    query += ' ORDER BY e.date DESC';
+
+    try {
+        const logs = await db.all(query, params);
+        res.json(logs);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- Maintenance Logs ---
+
+router.get('/maintenance', async (req, res) => {
+    const db = await getDb();
+    try {
+        const logs = await db.all(`
+            SELECT ml.*, ii.name as item_name
+            FROM maintenance_logs ml
+            JOIN inventory_items ii ON ml.item_id = ii.id
+            ORDER BY ml.date DESC
+        `);
+        res.json(logs);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/maintenance', async (req, res) => {
+    const { item_id, date, issue, action, cost, status } = req.body;
+    console.log('POST /maintenance body:', req.body);
+    const db = await getDb();
+    try {
+        await db.run(
+            `INSERT INTO maintenance_logs (item_id, date, issue, action, cost, status) VALUES (?, ?, ?, ?, ?, ?)`,
+            [item_id, date, issue, action, cost, status]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('POST /maintenance error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/maintenance/:id', async (req, res) => {
+    const { action, cost, status } = req.body;
+    const db = await getDb();
+    try {
+        await db.run(
+            `UPDATE maintenance_logs SET action = ?, cost = ?, status = ? WHERE id = ?`,
+            [action, cost, status, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- Consumables Logs ---
+
+router.get('/consumables', async (req, res) => {
+    const db = await getDb();
+    try {
+        const logs = await db.all(`
+            SELECT cl.*, ii.name as item_name
+            FROM consumables_logs cl
+            JOIN inventory_items ii ON cl.item_id = ii.id
+            ORDER BY cl.date DESC
+        `);
+        res.json(logs);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/consumables', async (req, res) => {
+    const { item_id, date, qty_used } = req.body;
+    const db = await getDb();
+    try {
+        // Get current stock (total_quantity) - we might want to update the master record too?
+        // Or "balance" is just recorded at that time?
+        // Let's deduce balance from inventory_items
+        const item = await db.get('SELECT * FROM inventory_items WHERE id = ?', item_id);
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        const newBalance = item.total_quantity - qty_used;
+
+        // Update master stock
+        await db.run('UPDATE inventory_items SET total_quantity = ? WHERE id = ?', [newBalance, item_id]);
+
+        // Log usage
+        await db.run(
+            `INSERT INTO consumables_logs (item_id, date, qty_used, balance) VALUES (?, ?, ?, ?)`,
+            [item_id, date, qty_used, newBalance]
+        );
+
+        res.json({ success: true, new_balance: newBalance });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 export default router;

@@ -40,9 +40,13 @@ export async function initDb() {
     CREATE TABLE IF NOT EXISTS inventory_items (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      type TEXT, -- 'deco', 'pa', etc.
+      type TEXT, -- 'deco', 'pa', 'av', etc.
+      category TEXT, -- 'Fixed Asset', 'Operational', 'Consumable'
       total_quantity INTEGER NOT NULL,
-      buffer_time_hours INTEGER DEFAULT 0
+      buffer_time_hours INTEGER DEFAULT 0,
+      condition TEXT, -- 'Good', 'Fair', 'Poor', 'New'
+      location TEXT, -- 'Store', 'Gig Bag', 'Cable Box'
+      last_checked TEXT -- ISO Date
     );
 
     CREATE TABLE IF NOT EXISTS inventory_bookings (
@@ -50,12 +54,40 @@ export async function initDb() {
       event_id INTEGER,
       item_id INTEGER,
       quantity INTEGER NOT NULL,
-      start_time TEXT, -- ISO string including date
-      end_time TEXT,   -- ISO string
-      status TEXT,     -- 'reserved', 'confirmed', 'out', 'returned'
-      returned INTEGER DEFAULT 0, -- boolean
-      damaged INTEGER DEFAULT 0,  -- boolean
+      start_time TEXT,
+      end_time TEXT,
+      status TEXT,     -- 'reserved', 'confirmed', 'out', 'returned', 'cancelled'
+
+      -- Movement Log Fields
+      qty_out INTEGER DEFAULT 0,
+      qty_back INTEGER DEFAULT 0,
+      missing INTEGER DEFAULT 0,
+      condition_return TEXT,
+
+      returned INTEGER DEFAULT 0, -- boolean (legacy, maybe keep for query compat)
+      damaged INTEGER DEFAULT 0,  -- boolean (legacy)
+
       FOREIGN KEY (event_id) REFERENCES events(id),
+      FOREIGN KEY (item_id) REFERENCES inventory_items(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS maintenance_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      item_id INTEGER,
+      date TEXT NOT NULL,
+      issue TEXT,
+      action TEXT,
+      cost REAL DEFAULT 0,
+      status TEXT, -- 'Pending', 'In Progress', 'Fixed', 'Written Off'
+      FOREIGN KEY (item_id) REFERENCES inventory_items(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS consumables_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      item_id INTEGER,
+      date TEXT NOT NULL,
+      qty_used INTEGER DEFAULT 0,
+      balance INTEGER DEFAULT 0,
       FOREIGN KEY (item_id) REFERENCES inventory_items(id)
     );
 
@@ -70,8 +102,8 @@ export async function initDb() {
       photographer_id INTEGER,
       start_time TEXT,
       end_time TEXT,
-      status TEXT, -- 'pending', 'confirmed', 'completed'
-      post_prod_status TEXT, -- 'editing', 'review', 'delivered'
+      status TEXT,
+      post_prod_status TEXT,
       FOREIGN KEY (event_id) REFERENCES events(id),
       FOREIGN KEY (photographer_id) REFERENCES photographers(id)
     );
@@ -82,7 +114,7 @@ export async function initDb() {
       flavor TEXT,
       dietary_restrictions TEXT,
       design_notes TEXT,
-      status TEXT, -- 'received', 'baking', 'decorating', 'ready'
+      status TEXT,
       due_date TEXT,
       FOREIGN KEY (event_id) REFERENCES events(id)
     );
@@ -91,7 +123,7 @@ export async function initDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
-      role TEXT DEFAULT 'customer', -- 'admin', 'staff', 'customer'
+      role TEXT DEFAULT 'customer',
       full_name TEXT,
       is_active INTEGER DEFAULT 1,
       last_login TEXT,
@@ -123,12 +155,12 @@ export async function initDb() {
     CREATE TABLE IF NOT EXISTS loans (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       borrower TEXT NOT NULL,
-      type TEXT, -- 'Staff Loan', 'Personal Loan', etc.
+      type TEXT,
       date_given TEXT NOT NULL,
       amount REAL DEFAULT 0,
-      interest TEXT, -- e.g. '0%', '5%'
+      interest TEXT,
       due_date TEXT,
-      status TEXT DEFAULT 'Active' -- 'Active', 'Repaid', 'Written Off'
+      status TEXT DEFAULT 'Active'
     );
 
     CREATE TABLE IF NOT EXISTS loan_repayments (
