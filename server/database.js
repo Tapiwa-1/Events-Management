@@ -130,6 +130,16 @@ export async function initDb() {
       due_date TEXT,
       status TEXT DEFAULT 'Active' -- 'Active', 'Repaid', 'Written Off'
     );
+
+    CREATE TABLE IF NOT EXISTS loan_repayments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      loan_id INTEGER,
+      date TEXT NOT NULL,
+      amount REAL DEFAULT 0,
+      method TEXT,
+      notes TEXT,
+      FOREIGN KEY (loan_id) REFERENCES loans(id)
+    );
   `);
 
   console.log('Database initialized');
