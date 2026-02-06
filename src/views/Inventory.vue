@@ -39,6 +39,50 @@
             </ul>
         </div>
 
+        <!-- Toolbar: Search, Filter, Page Size -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <!-- Search -->
+                <div class="relative w-full md:w-64">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <input type="text" v-model="searchQuery" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search...">
+                </div>
+
+                <!-- Filters -->
+                <select v-if="activeTab === 'register'" v-model="filterCategory" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option value="">All Categories</option>
+                    <option value="Fixed Asset">Fixed Asset</option>
+                    <option value="Operational">Operational</option>
+                    <option value="Consumable">Consumable</option>
+                </select>
+
+                <select v-if="activeTab === 'movement'" v-model="selectedEventId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option value="">All Events</option>
+                    <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
+                </select>
+
+                <select v-if="activeTab === 'maintenance'" v-model="filterStatus" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Fixed">Fixed</option>
+                    <option value="Faulty">Faulty</option>
+                </select>
+            </div>
+
+            <!-- Items Per Page -->
+            <div class="flex items-center space-x-4 w-full md:w-auto justify-end">
+                 <select v-model="itemsPerPage" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option :value="5">5 per page</option>
+                    <option :value="10">10 per page</option>
+                    <option :value="20">20 per page</option>
+                    <option :value="50">50 per page</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Tab Content: Inventory Register -->
         <div v-if="activeTab === 'register'">
              <div class="mb-4 text-right">
@@ -48,17 +92,17 @@
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th scope="col" class="px-6 py-3">Item Name</th>
-                            <th scope="col" class="px-6 py-3">Category</th>
-                            <th scope="col" class="px-6 py-3">Qty</th>
-                            <th scope="col" class="px-6 py-3">Condition</th>
-                            <th scope="col" class="px-6 py-3">Location</th>
-                            <th scope="col" class="px-6 py-3">Last Checked</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('name')">Item Name <span v-if="sortKey==='name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('category')">Category <span v-if="sortKey==='category'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total_quantity')">Qty <span v-if="sortKey==='total_quantity'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('condition')">Condition <span v-if="sortKey==='condition'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('location')">Location <span v-if="sortKey==='location'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('last_checked')">Last Checked <span v-if="sortKey==='last_checked'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in inventoryItems" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <tr v-for="item in paginatedData" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ item.name }}</td>
                             <td class="px-6 py-4">{{ item.category }}</td>
                             <td class="px-6 py-4">{{ item.total_quantity }}</td>
@@ -69,6 +113,9 @@
                                 <button @click="openEditInventoryModal(item)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
                             </td>
                         </tr>
+                        <tr v-if="paginatedData.length === 0">
+                            <td colspan="7" class="px-6 py-4 text-center">No inventory items found.</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -76,19 +123,13 @@
 
         <!-- Tab Content: Movement Log -->
         <div v-if="activeTab === 'movement'">
-            <div class="mb-4 flex gap-4">
-                 <select v-model="selectedEventId" @change="loadMovementLog" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
-                    <option value="">All Events</option>
-                    <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </select>
-            </div>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th scope="col" class="px-6 py-3">Date</th>
-                            <th scope="col" class="px-6 py-3">Event</th>
-                            <th scope="col" class="px-6 py-3">Item</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('event_date')">Date <span v-if="sortKey==='event_date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('event_name')">Event <span v-if="sortKey==='event_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Qty Out</th>
                             <th scope="col" class="px-6 py-3">Qty Back</th>
                             <th scope="col" class="px-6 py-3">Missing</th>
@@ -97,7 +138,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="log in movementLogs" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <tr v-for="log in paginatedData" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4">{{ formatDate(log.event_date) }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ log.event_name }}</td>
                             <td class="px-6 py-4">{{ log.item_name }}</td>
@@ -108,6 +149,9 @@
                             <td class="px-6 py-4">
                                 <button @click="openMovementModal(log)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Update</button>
                             </td>
+                        </tr>
+                        <tr v-if="paginatedData.length === 0">
+                            <td colspan="8" class="px-6 py-4 text-center">No movement logs found.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -123,17 +167,17 @@
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th scope="col" class="px-6 py-3">Date</th>
-                            <th scope="col" class="px-6 py-3">Item</th>
-                            <th scope="col" class="px-6 py-3">Issue</th>
-                            <th scope="col" class="px-6 py-3">Action</th>
-                            <th scope="col" class="px-6 py-3">Cost ($)</th>
-                            <th scope="col" class="px-6 py-3">Status</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('issue')">Issue <span v-if="sortKey==='issue'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('action')">Action <span v-if="sortKey==='action'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('cost')">Cost ($) <span v-if="sortKey==='cost'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Update</th>
                         </tr>
                     </thead>
                     <tbody>
-                         <tr v-for="log in maintenanceLogs" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                         <tr v-for="log in paginatedData" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4">{{ formatDate(log.date) }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ log.item_name }}</td>
                             <td class="px-6 py-4">{{ log.issue }}</td>
@@ -147,6 +191,9 @@
                             <td class="px-6 py-4">
                                 <button v-if="log.status !== 'Fixed'" @click="openMaintenanceModal(log)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Resolve</button>
                             </td>
+                        </tr>
+                        <tr v-if="paginatedData.length === 0">
+                            <td colspan="7" class="px-6 py-4 text-center">No maintenance logs found.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -162,22 +209,40 @@
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                         <tr>
-                            <th scope="col" class="px-6 py-3">Date</th>
-                            <th scope="col" class="px-6 py-3">Item</th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+                            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Qty Used</th>
                             <th scope="col" class="px-6 py-3">Balance</th>
                         </tr>
                     </thead>
                     <tbody>
-                         <tr v-for="log in consumableLogs" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                         <tr v-for="log in paginatedData" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4">{{ formatDate(log.date) }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ log.item_name }}</td>
                             <td class="px-6 py-4">{{ log.qty_used }}</td>
                             <td class="px-6 py-4">{{ log.balance }}</td>
                         </tr>
+                        <tr v-if="paginatedData.length === 0">
+                            <td colspan="4" class="px-6 py-4 text-center">No consumable logs found.</td>
+                        </tr>
                     </tbody>
                 </table>
              </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="filteredData.length > 0" class="flex flex-col items-center mt-4">
+            <span class="text-sm text-gray-700 dark:text-gray-400">
+                Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ Math.min(currentPage * itemsPerPage, filteredData.length) }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ filteredData.length }}</span> Entries
+            </span>
+            <div class="inline-flex mt-2 xs:mt-0">
+                <button @click="prevPage" :disabled="currentPage === 1" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 rounded-l hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
+                    Prev
+                </button>
+                <button @click="nextPage" :disabled="currentPage === totalPages" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 border-0 border-l border-blue-700 rounded-r hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
+                    Next
+                </button>
+            </div>
         </div>
 
     </div>
@@ -362,8 +427,16 @@ const maintenanceLogs = ref([]);
 const consumableLogs = ref([]);
 const events = ref([]);
 
-// Filters
+// Filters & Search
 const selectedEventId = ref('');
+const searchQuery = ref('');
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const sortKey = ref(null);
+const sortOrder = ref('asc');
+
+const filterCategory = ref('');
+const filterStatus = ref('');
 
 // Modals & Forms
 const showInventoryModal = ref(false);
@@ -427,9 +500,17 @@ const loadInventory = async () => {
 
 const loadMovementLog = async () => {
     try {
-        const params = {};
-        if (selectedEventId.value) params.event_id = selectedEventId.value;
-        const res = await api.get('/inventory/movement', { params });
+        // We load all logs and filter client side for better UX with search/pagination
+        // OR we can keep backend filtering. For now, let's load all to support generic search easily.
+        // If we strictly want to follow previous pattern:
+        // const params = {};
+        // if (selectedEventId.value) params.event_id = selectedEventId.value;
+        // const res = await api.get('/inventory/movement', { params });
+
+        // But to support search across all fields easily without backend changes, fetching all is easier for now.
+        // Let's keep fetching all for now, or fetch by event if selected.
+        // Actually, if I want to filter by event in the UI (as requested "add filters"), I should probably fetch all.
+        const res = await api.get('/inventory/movement');
         movementLogs.value = res.data;
     } catch (err) { console.error(err); }
 };
@@ -455,6 +536,96 @@ const loadEvents = async () => {
     } catch (err) { console.error(err); }
 };
 
+// Computed Properties for Table Logic
+const currentSource = computed(() => {
+    switch (activeTab.value) {
+        case 'register': return inventoryItems.value;
+        case 'movement': return movementLogs.value;
+        case 'maintenance': return maintenanceLogs.value;
+        case 'consumables': return consumableLogs.value;
+        default: return [];
+    }
+});
+
+const getSearchableFields = (tab) => {
+    switch (tab) {
+        case 'register': return ['name', 'category', 'condition', 'location'];
+        case 'movement': return ['event_name', 'item_name', 'condition_return'];
+        case 'maintenance': return ['item_name', 'issue', 'action', 'status'];
+        case 'consumables': return ['item_name'];
+        default: return [];
+    }
+};
+
+const filteredData = computed(() => {
+    let data = currentSource.value;
+
+    // Specific Filters
+    if (activeTab.value === 'register' && filterCategory.value) {
+        data = data.filter(item => item.category === filterCategory.value);
+    }
+    if (activeTab.value === 'movement' && selectedEventId.value) {
+        // Filter by selectedEventId locally
+        data = data.filter(log => log.event_id == selectedEventId.value);
+    }
+    if (activeTab.value === 'maintenance' && filterStatus.value) {
+        data = data.filter(log => log.status === filterStatus.value);
+    }
+
+    // Search
+    if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase();
+        const fields = getSearchableFields(activeTab.value);
+        data = data.filter(item => {
+            return fields.some(field => {
+                const val = item[field];
+                return String(val || '').toLowerCase().includes(query);
+            });
+        });
+    }
+    return data;
+});
+
+const sortedData = computed(() => {
+    let data = [...filteredData.value];
+    if (sortKey.value) {
+        data.sort((a, b) => {
+            let aVal = a[sortKey.value];
+            let bVal = b[sortKey.value];
+
+            if (typeof aVal === 'string' && typeof bVal === 'string') {
+                 aVal = aVal.toLowerCase();
+                 bVal = bVal.toLowerCase();
+            }
+
+            if (aVal === bVal) return 0;
+            let result = (aVal > bVal) ? 1 : -1;
+            return sortOrder.value === 'asc' ? result : -result;
+        });
+    }
+    return data;
+});
+
+const paginatedData = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value;
+    const end = start + itemsPerPage.value;
+    return sortedData.value.slice(start, end);
+});
+
+const totalPages = computed(() => Math.ceil(filteredData.value.length / itemsPerPage.value));
+
+const sortBy = (key) => {
+    if (sortKey.value === key) {
+        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortKey.value = key;
+        sortOrder.value = 'asc';
+    }
+};
+
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
+
 // Initial Load & Watchers
 onMounted(() => {
     loadInventory();
@@ -466,7 +637,18 @@ onMounted(() => {
 
 watch(selectedCategory, () => {
     loadInventory();
-    // Also reload logs if we filter them by category later, currently loading all
+});
+
+watch(activeTab, () => {
+    searchQuery.value = '';
+    currentPage.value = 1;
+    sortKey.value = null;
+    sortOrder.value = 'asc';
+    // Reset filters? Maybe keep them if switching back?
+    // Let's reset for cleaner UX.
+    filterCategory.value = '';
+    filterStatus.value = '';
+    selectedEventId.value = '';
 });
 
 // Actions
