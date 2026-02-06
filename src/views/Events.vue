@@ -38,6 +38,7 @@
             </td>
              <td class="px-6 py-4 text-gray-500 dark:text-gray-400">${{ formatCurrency(event.transport_cost) }}</td>
             <td class="px-6 py-4">
+              <button @click="viewDetails(event)" class="font-medium text-green-600 dark:text-green-500 hover:underline mr-3">View</button>
               <button @click="editEvent(event)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
             </td>
           </tr>
@@ -46,6 +47,72 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Details Modal -->
+    <div v-if="showDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4" tabindex="-1">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-4xl rounded-lg shadow-lg max-h-full overflow-y-auto relative">
+            <div class="flex justify-between items-center p-4 border-b dark:border-gray-700">
+                <h3 class="text-xl font-bold dark:text-white">Event Details</h3>
+                <button @click="showDetailsModal = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
+                     <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                </button>
+            </div>
+            <div class="p-6" v-if="selectedEventDetails">
+                <!-- Event Info -->
+                <div class="grid grid-cols-2 gap-4 mb-6 text-gray-900 dark:text-white">
+                    <div><strong>Name:</strong> {{ selectedEventDetails.event.name }}</div>
+                    <div><strong>Date:</strong> {{ formatDate(selectedEventDetails.event.date) }}</div>
+                    <div><strong>Phone:</strong> {{ selectedEventDetails.event.phone || 'N/A' }}</div>
+                    <div><strong>Location:</strong> {{ selectedEventDetails.event.location || 'N/A' }}</div>
+                    <div><strong>Status:</strong> <span :class="statusClass(selectedEventDetails.event.status)" class="px-2 py-0.5 rounded text-xs">{{ selectedEventDetails.event.status }}</span></div>
+                </div>
+
+                <hr class="my-4 border-gray-200 dark:border-gray-700">
+
+                <h4 class="text-lg font-bold mb-4 dark:text-white">Services</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Inventory -->
+                    <div>
+                        <h5 class="font-semibold dark:text-gray-200 mb-2 underline">Equipment / Inventory</h5>
+                        <ul v-if="selectedEventDetails.services.inventory.length" class="list-disc ml-5 text-sm dark:text-gray-300">
+                            <li v-for="item in selectedEventDetails.services.inventory" :key="item.id">
+                                {{ item.item_name }} (Qty: {{ item.quantity }})
+                            </li>
+                        </ul>
+                        <p v-else class="text-gray-500 text-sm italic">No inventory booked.</p>
+                    </div>
+
+                    <!-- Photographers -->
+                    <div>
+                        <h5 class="font-semibold dark:text-gray-200 mb-2 underline">Photographers</h5>
+                        <ul v-if="selectedEventDetails.services.photographers.length" class="list-disc ml-5 text-sm dark:text-gray-300">
+                            <li v-for="p in selectedEventDetails.services.photographers" :key="p.id">
+                                {{ p.photographer_name }}
+                                <div class="text-xs text-gray-500">{{ p.start_time }} - {{ p.end_time }}</div>
+                            </li>
+                        </ul>
+                        <p v-else class="text-gray-500 text-sm italic">No photographers booked.</p>
+                    </div>
+
+                    <!-- Cakes -->
+                    <div>
+                        <h5 class="font-semibold dark:text-gray-200 mb-2 underline">Cakes</h5>
+                        <ul v-if="selectedEventDetails.services.cakes.length" class="list-disc ml-5 text-sm dark:text-gray-300">
+                            <li v-for="cake in selectedEventDetails.services.cakes" :key="cake.id">
+                                {{ cake.flavor }} (Due: {{ formatDate(cake.due_date) }})
+                                <div class="text-xs text-gray-500">{{ cake.status }}</div>
+                            </li>
+                        </ul>
+                        <p v-else class="text-gray-500 text-sm italic">No cakes ordered.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t dark:border-gray-700 flex justify-end">
+                <button @click="showDetailsModal = false" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -75,6 +142,11 @@
                     <div class="col-span-2 md:col-span-1">
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
                         <input v-model="form.date" type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required />
+                    </div>
+
+                    <div>
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone Number</label>
+                        <input v-model="form.phone" type="tel" placeholder="123-456-7890" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
                     </div>
 
                     <div>
@@ -153,12 +225,15 @@ import { useAuthStore } from '../stores/auth';
 const authStore = useAuthStore();
 const events = ref([]);
 const showModal = ref(false);
+const showDetailsModal = ref(false);
+const selectedEventDetails = ref(null);
 const isEditing = ref(false);
 const editingId = ref(null);
 
 const form = ref({
   name: '',
   date: '',
+  phone: '',
   start_time: '',
   end_time: '',
   location: '',
@@ -205,6 +280,7 @@ const openModal = () => {
   form.value = {
       name: '',
       date: new Date().toISOString().split('T')[0],
+      phone: '',
       start_time: '',
       end_time: '',
       location: '',
@@ -222,6 +298,16 @@ const editEvent = (event) => {
   editingId.value = event.id;
   form.value = { ...event };
   showModal.value = true;
+};
+
+const viewDetails = async (event) => {
+    try {
+        const res = await api.get(`/events/${event.id}/details`);
+        selectedEventDetails.value = res.data;
+        showDetailsModal.value = true;
+    } catch (err) {
+        console.error('Failed to load event details', err);
+    }
 };
 
 const closeModal = () => {

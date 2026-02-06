@@ -14,13 +14,13 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { client_id, name, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost } = req.body;
+  const { client_id, name, date, start_time, end_time, location, phone, type, status, amount_paid, total_cost, transport_cost } = req.body;
   const db = await getDb();
   try {
     const result = await db.run(
-      `INSERT INTO events (client_id, name, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [client_id, name, date, start_time, end_time, location, type, status || 'planned', amount_paid || 0, total_cost || 0, transport_cost || 0]
+      `INSERT INTO events (client_id, name, date, start_time, end_time, location, phone, type, status, amount_paid, total_cost, transport_cost)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [client_id, name, date, start_time, end_time, location, phone, type, status || 'planned', amount_paid || 0, total_cost || 0, transport_cost || 0]
     );
     res.json({ id: result.lastID, ...req.body });
   } catch (err) {
@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  let { status, failure_reason, amount_paid, name, location, date, start_time, end_time, type, total_cost, transport_cost } = req.body;
+  let { status, failure_reason, amount_paid, name, location, phone, date, start_time, end_time, type, total_cost, transport_cost } = req.body;
   const db = await getDb();
 
   // If status is completing, auto-pay remaining balance
@@ -48,7 +48,7 @@ router.put('/:id', async (req, res) => {
   const updates = [];
   const params = [];
 
-  const fields = { status, failure_reason, amount_paid, name, location, date, start_time, end_time, type, total_cost, transport_cost };
+  const fields = { status, failure_reason, amount_paid, name, location, phone, date, start_time, end_time, type, total_cost, transport_cost };
 
   for (const [key, value] of Object.entries(fields)) {
       if (value !== undefined) {
@@ -67,6 +67,42 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
       res.status(500).json({ error: err.message });
   }
+});
+
+router.get('/:id/details', async (req, res) => {
+  const db = await getDb();
+  const eventId = req.params.id;
+  const event = await db.get('SELECT * FROM events WHERE id = ?', eventId);
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  // Fetch Services
+  // Photographers
+  const photographers = await db.all(`
+    SELECT sb.*, p.name as photographer_name
+    FROM service_bookings sb
+    JOIN photographers p ON sb.photographer_id = p.id
+    WHERE sb.event_id = ?
+  `, eventId);
+
+  // Inventory
+  const inventory = await db.all(`
+    SELECT ib.*, ii.name as item_name
+    FROM inventory_bookings ib
+    JOIN inventory_items ii ON ib.item_id = ii.id
+    WHERE ib.event_id = ?
+  `, eventId);
+
+  // Cakes
+  const cakes = await db.all('SELECT * FROM cake_orders WHERE event_id = ?', eventId);
+
+  res.json({
+    event,
+    services: {
+      photographers,
+      inventory,
+      cakes
+    }
+  });
 });
 
 router.get('/:id', async (req, res) => {
