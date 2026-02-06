@@ -55,18 +55,15 @@
       <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">CASH BOOK</h2>
       </div>
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('description')">Description <span v-if="sortKey==='description'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('moneyIn')">Money In (USD) <span v-if="sortKey==='moneyIn'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('moneyOut')">Money Out (USD) <span v-if="sortKey==='moneyOut'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3">Balance (USD)</th>
-            </tr>
-          </thead>
-          <tbody>
+      <BaseTable>
+        <template #head>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('description')">Description <span v-if="sortKey==='description'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('moneyIn')">Money In (USD) <span v-if="sortKey==='moneyIn'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('moneyOut')">Money Out (USD) <span v-if="sortKey==='moneyOut'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3">Balance (USD)</th>
+        </template>
+        <template #body>
             <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.description }}</td>
@@ -77,9 +74,8 @@
             <tr v-if="paginatedData.length === 0">
                <td colspan="5" class="px-6 py-4 text-center">No entries found.</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </BaseTable>
     </div>
 
     <!-- Sales / Income Book Section -->
@@ -87,21 +83,18 @@
       <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">SALES / INCOME BOOK</h2>
       </div>
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('client')">Client Name <span v-if="sortKey==='client'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventType')">Event Type <span v-if="sortKey==='eventType'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventDate')">Event Date <span v-if="sortKey==='eventDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total')">Total (USD) <span v-if="sortKey==='total'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('deposit')">Deposit <span v-if="sortKey==='deposit'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('balance')">Balance <span v-if="sortKey==='balance'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-            </tr>
-          </thead>
-          <tbody>
+      <BaseTable>
+        <template #head>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('client')">Client Name <span v-if="sortKey==='client'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventType')">Event Type <span v-if="sortKey==='eventType'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventDate')">Event Date <span v-if="sortKey==='eventDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total')">Total (USD) <span v-if="sortKey==='total'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('deposit')">Deposit <span v-if="sortKey==='deposit'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('balance')">Balance <span v-if="sortKey==='balance'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+        </template>
+        <template #body>
             <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
@@ -119,9 +112,8 @@
              <tr v-if="paginatedData.length === 0">
                <td colspan="8" class="px-6 py-4 text-center">No sales found.</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </BaseTable>
     </div>
 
     <!-- Debtors Book Section -->
@@ -129,21 +121,18 @@
       <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">DEBTORS BOOK</h2>
       </div>
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('client')">Client Name <span v-if="sortKey==='client'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventType')">Event Type <span v-if="sortKey==='eventType'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventDate')">Event Date <span v-if="sortKey==='eventDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total')">Total (USD) <span v-if="sortKey==='total'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('paid')">Paid <span v-if="sortKey==='paid'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('balance')">Balance Owing <span v-if="sortKey==='balance'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('dueDate')">Due Date <span v-if="sortKey==='dueDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-            </tr>
-          </thead>
-          <tbody>
+      <BaseTable>
+        <template #head>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('client')">Client Name <span v-if="sortKey==='client'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventType')">Event Type <span v-if="sortKey==='eventType'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('eventDate')">Event Date <span v-if="sortKey==='eventDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total')">Total (USD) <span v-if="sortKey==='total'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('paid')">Paid <span v-if="sortKey==='paid'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('balance')">Balance Owing <span v-if="sortKey==='balance'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('dueDate')">Due Date <span v-if="sortKey==='dueDate'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+        </template>
+        <template #body>
             <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.client }}</td>
               <td class="px-6 py-4">{{ entry.eventType }}</td>
@@ -161,9 +150,8 @@
             <tr v-if="paginatedData.length === 0">
                <td colspan="8" class="px-6 py-4 text-center">No debtors found.</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </BaseTable>
     </div>
 
     <!-- Owner's Drawings Book Section -->
@@ -171,18 +159,15 @@
       <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">OWNER’S DRAWINGS BOOK</h2>
       </div>
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('amount')">Amount (USD) <span v-if="sortKey==='amount'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('method')">Method <span v-if="sortKey==='method'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('description')">Reason <span v-if="sortKey==='description'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('notes')">Notes <span v-if="sortKey==='notes'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-            </tr>
-          </thead>
-          <tbody>
+      <BaseTable>
+        <template #head>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('amount')">Amount (USD) <span v-if="sortKey==='amount'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('method')">Method <span v-if="sortKey==='method'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('description')">Reason <span v-if="sortKey==='description'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('notes')">Notes <span v-if="sortKey==='notes'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+        </template>
+        <template #body>
             <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
               <td class="px-6 py-4 font-semibold text-gray-900 dark:text-white">{{ formatCurrency(entry.amount) }}</td>
@@ -193,9 +178,8 @@
              <tr v-if="paginatedData.length === 0">
                <td colspan="5" class="px-6 py-4 text-center">No drawings found.</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </BaseTable>
     </div>
 
     <!-- Loan / Advances Book Section -->
@@ -203,23 +187,20 @@
       <div class="mb-2">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">LOANS BOOK</h2>
       </div>
-      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('borrower')">Borrower <span v-if="sortKey==='borrower'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('type')">Type <span v-if="sortKey==='type'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date_given')">Date Given <span v-if="sortKey==='date_given'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('amount')">Amount (USD) <span v-if="sortKey==='amount'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3">Paid (USD)</th>
-              <th scope="col" class="px-6 py-3">Balance (USD)</th>
-              <th scope="col" class="px-6 py-3">Interest</th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('due_date')">Due Date <span v-if="sortKey==='due_date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
-              <th scope="col" class="px-6 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
+      <BaseTable>
+        <template #head>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('borrower')">Borrower <span v-if="sortKey==='borrower'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('type')">Type <span v-if="sortKey==='type'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date_given')">Date Given <span v-if="sortKey==='date_given'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('amount')">Amount (USD) <span v-if="sortKey==='amount'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3">Paid (USD)</th>
+            <th scope="col" class="px-6 py-3">Balance (USD)</th>
+            <th scope="col" class="px-6 py-3">Interest</th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('due_date')">Due Date <span v-if="sortKey==='due_date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            <th scope="col" class="px-6 py-3">Action</th>
+        </template>
+        <template #body>
             <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
               <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.borrower }}</td>
               <td class="px-6 py-4">{{ entry.type }}</td>
@@ -241,9 +222,8 @@
              <tr v-if="paginatedData.length === 0">
                <td colspan="10" class="px-6 py-4 text-center">No loans found.</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </BaseTable>
     </div>
 
     <!-- Pagination Controls (Visible if supported book and more than 0 items) -->
@@ -381,6 +361,7 @@ import BaseSelect from '../components/common/BaseSelect.vue';
 import BaseTextarea from '../components/common/BaseTextarea.vue';
 import BaseModal from '../components/common/BaseModal.vue';
 import BaseBadge from '../components/common/BaseBadge.vue';
+import BaseTable from '../components/common/BaseTable.vue';
 import Pagination from '../components/common/Pagination.vue';
 
 const selectedBook = ref('cash_book');
