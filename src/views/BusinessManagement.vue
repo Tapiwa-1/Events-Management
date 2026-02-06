@@ -22,7 +22,7 @@
     </div>
 
     <!-- Toolbar: Search & Page Size (Visible for all active books) -->
-    <div v-if="selectedBook !== 'maintenance_log'" class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
         <!-- Search -->
         <div class="relative w-full md:w-64">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -245,8 +245,46 @@
       </div>
     </div>
 
+    <!-- Maintenance Log Section -->
+    <div v-else-if="selectedBook === 'maintenance_log'">
+      <div class="mb-2">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">MAINTENANCE LOG</h2>
+      </div>
+      <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('issue')">Issue <span v-if="sortKey==='issue'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('action')">Action <span v-if="sortKey==='action'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('cost')">Cost ($) <span v-if="sortKey==='cost'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+              <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(entry, index) in paginatedData" :key="index" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              <td class="px-6 py-4">{{ formatDate(entry.date) }}</td>
+              <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ entry.item_name }}</td>
+              <td class="px-6 py-4">{{ entry.issue }}</td>
+              <td class="px-6 py-4">{{ entry.action }}</td>
+              <td class="px-6 py-4">{{ formatCurrency(entry.cost) }}</td>
+              <td class="px-6 py-4">
+                 <span :class="statusClass(entry.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                  {{ entry.status }}
+                 </span>
+              </td>
+            </tr>
+             <tr v-if="paginatedData.length === 0">
+               <td colspan="6" class="px-6 py-4 text-center">No maintenance logs found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Pagination Controls (Visible if supported book and more than 0 items) -->
-    <div v-if="selectedBook !== 'maintenance_log' && filteredData.length > 0" class="flex flex-col items-center mt-4">
+    <div v-if="filteredData.length > 0" class="flex flex-col items-center mt-4">
         <span class="text-sm text-gray-700 dark:text-gray-400">
             Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ Math.min(currentPage * itemsPerPage, filteredData.length) }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ filteredData.length }}</span> Entries
         </span>
@@ -258,12 +296,6 @@
                 Next
             </button>
         </div>
-    </div>
-
-    <!-- Other Sections -->
-    <div v-if="selectedBook === 'maintenance_log'" class="flex flex-col items-center justify-center p-12 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-        <h2 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Coming Soon</h2>
-        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">This section is currently under development.</p>
     </div>
 
     <!-- Add Expense Modal -->
@@ -436,6 +468,7 @@ const events = ref([]);
 const transactions = ref([]);
 const loans = ref([]);
 const loanRepayments = ref([]);
+const maintenanceLogs = ref([]);
 const showExpenseModal = ref(false);
 const showLoanModal = ref(false);
 const showRepaymentModal = ref(false);
@@ -484,16 +517,18 @@ const repaymentForm = reactive({
 
 const loadData = async () => {
   try {
-    const [eventsRes, transactionsRes, loansRes, repaymentsRes] = await Promise.all([
+    const [eventsRes, transactionsRes, loansRes, repaymentsRes, maintenanceRes] = await Promise.all([
       api.get('/events'),
       api.get('/business/transactions'),
       api.get('/business/loans'),
-      api.get('/business/loans/repayments')
+      api.get('/business/loans/repayments'),
+      api.get('/inventory/maintenance')
     ]);
     events.value = eventsRes.data;
     transactions.value = transactionsRes.data;
     loans.value = loansRes.data;
     loanRepayments.value = repaymentsRes.data;
+    maintenanceLogs.value = maintenanceRes.data;
   } catch (err) {
     console.error('Failed to load business data', err);
   }
@@ -677,6 +712,18 @@ const cashBookEntries = computed(() => {
         });
     });
 
+    maintenanceLogs.value.forEach(m => {
+        if (m.status === 'Fixed' && m.cost > 0) {
+             entries.push({
+                date: m.date,
+                description: `Maintenance: ${m.item_name} - ${m.issue}`,
+                moneyIn: null,
+                moneyOut: m.cost,
+                timestamp: new Date(m.date).getTime()
+            });
+        }
+    });
+
     entries.sort((a, b) => a.timestamp - b.timestamp);
 
     return entries.map(e => {
@@ -696,6 +743,7 @@ const getSearchableFields = (book) => {
         case 'debtors_book': return ['client', 'eventType', 'status'];
         case 'owners_drawings': return ['date', 'description', 'notes', 'method'];
         case 'loan_advances': return ['borrower', 'type', 'status'];
+        case 'maintenance_log': return ['date', 'item_name', 'issue', 'action', 'status'];
         default: return [];
     }
 };
@@ -707,6 +755,7 @@ const currentBookSource = computed(() => {
         case 'debtors_book': return debtorsBookEntries.value;
         case 'owners_drawings': return ownersDrawingsEntries.value;
         case 'loan_advances': return loans.value;
+        case 'maintenance_log': return maintenanceLogs.value;
         default: return [];
     }
 });
@@ -773,10 +822,14 @@ const statusClass = (status) => {
         case 'Balance Paid':
         case 'Active':
         case 'Repaid':
+        case 'Fixed':
             return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
         case 'Owing':
         case 'Overdue':
+        case 'Faulty':
             return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+        case 'Pending':
+            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
         default:
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
     }

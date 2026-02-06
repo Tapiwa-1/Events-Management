@@ -53,6 +53,7 @@ router.post('/', async (req, res) => {
         );
         res.json({ id: result.lastID, success: true });
     } catch (err) {
+        console.error('Error creating inventory item:', err);
         res.status(500).json({ error: err.message });
     }
 });
