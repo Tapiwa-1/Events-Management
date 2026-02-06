@@ -17,12 +17,19 @@
           <option value="owners_drawings">Owner’s Drawings Book</option>
           <option value="loan_advances">Loan / Advances Book</option>
           <option value="maintenance_log">Maintenance Log</option>
+          <option value="income_expenditure">Income & Expenditure Sheet</option>
         </select>
       </div>
     </div>
 
-    <!-- Toolbar: Search & Page Size (Visible for all active books) -->
-    <div class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
+    <!-- Period Selection for Income & Expenditure -->
+    <div v-if="selectedBook === 'income_expenditure'" class="mb-6 flex items-center space-x-4">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">Select Period:</label>
+        <input type="month" v-model="selectedPeriod" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+    </div>
+
+    <!-- Toolbar: Search & Page Size (Visible for all active books except Report) -->
+    <div v-if="selectedBook !== 'income_expenditure'" class="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
         <!-- Search -->
         <div class="relative w-full md:w-64">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -283,8 +290,80 @@
       </div>
     </div>
 
+    <!-- Income & Expenditure Report Section -->
+    <div v-else-if="selectedBook === 'income_expenditure'">
+        <div class="mb-4 text-center">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white uppercase">INCOME & EXPENDITURE SHEET</h2>
+            <p class="text-lg text-gray-700 dark:text-gray-300">For the month ended {{ selectedPeriodLabel }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Income Table -->
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <h3 class="p-4 text-lg font-semibold text-gray-900 bg-gray-50 dark:text-white dark:bg-gray-700">Income</h3>
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-600 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Source</th>
+                            <th scope="col" class="px-6 py-3 text-right">Amount (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(amount, source) in incomeExpenditureReport.incomeBreakdown" :key="source" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ source }}</td>
+                            <td class="px-6 py-4 text-right">{{ formatCurrency(amount) }}</td>
+                        </tr>
+                        <tr v-if="Object.keys(incomeExpenditureReport.incomeBreakdown).length === 0">
+                            <td colspan="2" class="px-6 py-4 text-center">No income recorded.</td>
+                        </tr>
+                        <tr class="bg-gray-50 dark:bg-gray-700 font-bold">
+                            <td class="px-6 py-4 text-gray-900 dark:text-white">Total Income</td>
+                            <td class="px-6 py-4 text-right text-gray-900 dark:text-white">{{ formatCurrency(incomeExpenditureReport.totalIncome) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Expenditure Table -->
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <h3 class="p-4 text-lg font-semibold text-gray-900 bg-gray-50 dark:text-white dark:bg-gray-700">Expenditure</h3>
+                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-600 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Expense</th>
+                            <th scope="col" class="px-6 py-3 text-right">Amount (USD)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(amount, category) in incomeExpenditureReport.expenseBreakdown" :key="category" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ category }}</td>
+                            <td class="px-6 py-4 text-right">{{ formatCurrency(amount) }}</td>
+                        </tr>
+                         <tr v-if="Object.keys(incomeExpenditureReport.expenseBreakdown).length === 0">
+                            <td colspan="2" class="px-6 py-4 text-center">No expenses recorded.</td>
+                        </tr>
+                        <tr class="bg-gray-50 dark:bg-gray-700 font-bold">
+                            <td class="px-6 py-4 text-gray-900 dark:text-white">Total Expenditure</td>
+                            <td class="px-6 py-4 text-right text-gray-900 dark:text-white">{{ formatCurrency(incomeExpenditureReport.totalExpense) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Surplus / Deficit -->
+        <div class="mt-6 p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                {{ incomeExpenditureReport.surplus >= 0 ? 'Surplus (Profit)' : 'Deficit (Loss)' }}
+            </h3>
+            <span class="text-2xl font-bold" :class="incomeExpenditureReport.surplus >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-500'">
+                {{ formatCurrency(Math.abs(incomeExpenditureReport.surplus)) }}
+            </span>
+        </div>
+    </div>
+
     <!-- Pagination Controls (Visible if supported book and more than 0 items) -->
-    <div v-if="filteredData.length > 0" class="flex flex-col items-center mt-4">
+    <div v-if="selectedBook !== 'income_expenditure' && filteredData.length > 0" class="flex flex-col items-center mt-4">
         <span class="text-sm text-gray-700 dark:text-gray-400">
             Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ Math.min(currentPage * itemsPerPage, filteredData.length) }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ filteredData.length }}</span> Entries
         </span>
@@ -473,6 +552,9 @@ const showExpenseModal = ref(false);
 const showLoanModal = ref(false);
 const showRepaymentModal = ref(false);
 const selectedLoan = ref(null);
+
+// Report State
+const selectedPeriod = ref(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
 // Table Controls State
 const searchQuery = ref('');
@@ -815,6 +897,84 @@ const sortBy = (key) => {
 
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
 const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
+
+const selectedPeriodLabel = computed(() => {
+    if (!selectedPeriod.value) return '';
+    const [year, month] = selectedPeriod.value.split('-');
+    const date = new Date(year, month - 1);
+    // Get last day of month
+    const lastDay = new Date(year, month, 0).getDate();
+    return `${lastDay} ${date.toLocaleString('default', { month: 'long' })} ${year}`;
+});
+
+const incomeExpenditureReport = computed(() => {
+    if (!selectedPeriod.value) return { totalIncome: 0, totalExpense: 0, surplus: 0, incomeBreakdown: {}, expenseBreakdown: {} };
+
+    const [year, month] = selectedPeriod.value.split('-');
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59); // Last day of month
+
+    const incomeBreakdown = {};
+    let totalIncome = 0;
+
+    // 1. Income from Events (Sales Book)
+    events.value.forEach(e => {
+        const d = new Date(e.date);
+        if (d >= startDate && d <= endDate) {
+            const type = e.type || 'General Event';
+            const income = e.total_cost || 0; // "Income earned"
+            if (!incomeBreakdown[type]) incomeBreakdown[type] = 0;
+            incomeBreakdown[type] += income;
+            totalIncome += income;
+        }
+    });
+
+    const expenseBreakdown = {};
+    let totalExpense = 0;
+
+    // 2. Expenses from Transactions (excluding drawings)
+    transactions.value.forEach(t => {
+        const d = new Date(t.date);
+        if (d >= startDate && d <= endDate && t.type === 'out' && t.category !== 'drawing') {
+            const cat = t.category || 'Other';
+            if (!expenseBreakdown[cat]) expenseBreakdown[cat] = 0;
+            expenseBreakdown[cat] += t.amount;
+            totalExpense += t.amount;
+        }
+    });
+
+    // 3. Maintenance Costs (Fixed items with cost)
+    maintenanceLogs.value.forEach(m => {
+        const d = new Date(m.date);
+        if (d >= startDate && d <= endDate && m.status === 'Fixed' && m.cost > 0) {
+            const cat = 'Inventory Maintenance';
+            if (!expenseBreakdown[cat]) expenseBreakdown[cat] = 0;
+            expenseBreakdown[cat] += m.cost;
+            totalExpense += m.cost;
+        }
+    });
+
+    // 4. Transport Costs (from Events) - is this an expense?
+    // "Cash Book" logic earlier subtracted transport_cost as moneyOut.
+    // So yes, it is an expense incurred.
+    events.value.forEach(e => {
+        const d = new Date(e.date);
+        if (d >= startDate && d <= endDate && e.transport_cost > 0) {
+            const cat = 'Transport';
+            if (!expenseBreakdown[cat]) expenseBreakdown[cat] = 0;
+            expenseBreakdown[cat] += e.transport_cost;
+            totalExpense += e.transport_cost;
+        }
+    });
+
+    return {
+        totalIncome,
+        totalExpense,
+        surplus: totalIncome - totalExpense,
+        incomeBreakdown,
+        expenseBreakdown
+    };
+});
 
 const statusClass = (status) => {
     switch(status) {
