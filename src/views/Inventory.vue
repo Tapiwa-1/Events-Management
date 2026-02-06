@@ -5,16 +5,15 @@
 
       <!-- Dropdown for selecting the inventory type -->
       <div class="w-full md:w-64">
-        <label for="inventory-select" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Inventory</label>
-        <select
+        <BaseSelect
           id="inventory-select"
           v-model="selectedCategory"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          label="Select Inventory"
         >
           <option value="pa">PA System</option>
           <option value="photography">Photography</option>
           <option value="decor">Decor</option>
-        </select>
+        </BaseSelect>
       </div>
     </div>
 
@@ -42,7 +41,7 @@
         <!-- Tab Content: Inventory Register -->
         <div v-if="activeTab === 'register'">
              <div class="mb-4 text-right">
-                <button @click="openAddInventoryModal()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Add Item</button>
+                <BaseButton @click="openAddInventoryModal">Add Item</BaseButton>
             </div>
              <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -76,11 +75,11 @@
 
         <!-- Tab Content: Movement Log -->
         <div v-if="activeTab === 'movement'">
-            <div class="mb-4 flex gap-4">
-                 <select v-model="selectedEventId" @change="loadMovementLog" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+            <div class="mb-4 flex gap-4 w-full md:w-64">
+                 <BaseSelect v-model="selectedEventId" @change="loadMovementLog">
                     <option value="">All Events</option>
                     <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </select>
+                </BaseSelect>
             </div>
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -117,7 +116,7 @@
         <!-- Tab Content: Maintenance -->
         <div v-if="activeTab === 'maintenance'">
              <div class="mb-4 text-right">
-                <button @click="openMaintenanceModal()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Log Issue</button>
+                <BaseButton @click="openMaintenanceModal">Log Issue</BaseButton>
             </div>
              <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -140,9 +139,9 @@
                             <td class="px-6 py-4">{{ log.action }}</td>
                             <td class="px-6 py-4">{{ log.cost }}</td>
                             <td class="px-6 py-4">
-                                <span :class="{'bg-green-100 text-green-800': log.status === 'Fixed', 'bg-yellow-100 text-yellow-800': log.status !== 'Fixed'}" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                                <BaseBadge :variant="log.status === 'Fixed' ? 'success' : 'warning'">
                                     {{ log.status }}
-                                </span>
+                                </BaseBadge>
                             </td>
                             <td class="px-6 py-4">
                                 <button v-if="log.status !== 'Fixed'" @click="openMaintenanceModal(log)" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Resolve</button>
@@ -156,7 +155,7 @@
         <!-- Tab Content: Consumables -->
         <div v-if="activeTab === 'consumables'">
              <div class="mb-4 text-right">
-                <button @click="openConsumableModal()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Log Usage</button>
+                <BaseButton @click="openConsumableModal">Log Usage</BaseButton>
             </div>
              <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -193,157 +192,125 @@
     <!-- Modals -->
 
     <!-- Inventory Add/Edit Modal -->
-    <div v-if="showInventoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow w-full max-w-md p-6">
-            <h3 class="text-xl font-medium mb-4 dark:text-white">{{ isEditingInventory ? 'Edit Inventory Item' : 'Add New Item' }}</h3>
-            <form @submit.prevent="submitInventoryItem" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium dark:text-white">Item Name</label>
-                    <input type="text" v-model="inventoryForm.name" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium dark:text-white">Category</label>
-                    <select v-model="inventoryForm.category" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                        <option value="Fixed Asset">Fixed Asset</option>
-                        <option value="Operational">Operational</option>
-                        <option value="Consumable">Consumable</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium dark:text-white">Total Quantity</label>
-                    <input type="number" v-model.number="inventoryForm.total_quantity" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium dark:text-white">Buffer Time (Hours)</label>
-                    <input type="number" v-model.number="inventoryForm.buffer_time_hours" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                 <div>
-                    <label class="block text-sm font-medium dark:text-white">Condition</label>
-                    <select v-model="inventoryForm.condition" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                        <option value="New">New</option>
-                        <option value="Excellent">Excellent</option>
-                        <option value="Good">Good</option>
-                        <option value="Fair">Fair</option>
-                        <option value="Poor">Poor</option>
-                    </select>
-                </div>
-                 <div>
-                    <label class="block text-sm font-medium dark:text-white">Location</label>
-                    <input type="text" v-model="inventoryForm.location" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" placeholder="e.g. Store, Gig Bag">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium dark:text-white">Last Checked</label>
-                    <input type="date" v-model="inventoryForm.last_checked" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
+    <BaseModal :show="showInventoryModal" :title="isEditingInventory ? 'Edit Inventory Item' : 'Add New Item'" @close="showInventoryModal = false" maxWidthClass="max-w-md">
+        <form class="space-y-4" @submit.prevent="submitInventoryItem">
+            <div>
+                <BaseInput v-model="inventoryForm.name" label="Item Name" required />
+            </div>
+            <div>
+                <BaseSelect v-model="inventoryForm.category" label="Category" required>
+                    <option value="Fixed Asset">Fixed Asset</option>
+                    <option value="Operational">Operational</option>
+                    <option value="Consumable">Consumable</option>
+                </BaseSelect>
+            </div>
+            <div>
+                <BaseInput v-model.number="inventoryForm.total_quantity" label="Total Quantity" type="number" required />
+            </div>
+            <div>
+                <BaseInput v-model.number="inventoryForm.buffer_time_hours" label="Buffer Time (Hours)" type="number" />
+            </div>
+             <div>
+                <BaseSelect v-model="inventoryForm.condition" label="Condition">
+                    <option value="New">New</option>
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Poor">Poor</option>
+                </BaseSelect>
+            </div>
+             <div>
+                <BaseInput v-model="inventoryForm.location" label="Location" placeholder="e.g. Store, Gig Bag" />
+            </div>
+            <div>
+                <BaseInput v-model="inventoryForm.last_checked" label="Last Checked" type="date" />
+            </div>
 
-                <div class="flex justify-end gap-2">
-                    <button type="button" @click="showInventoryModal = false" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <BaseButton variant="secondary" @click="showInventoryModal = false">Cancel</BaseButton>
+                <BaseButton type="submit">Save</BaseButton>
+            </div>
+        </form>
+    </BaseModal>
 
     <!-- Movement Update Modal -->
-    <div v-if="showMovementModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow w-full max-w-md p-6">
-            <h3 class="text-xl font-medium mb-4 dark:text-white">Update Movement: {{ selectedLog?.item_name }}</h3>
-            <form @submit.prevent="submitMovementUpdate" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium dark:text-white">Qty Out</label>
-                    <input type="number" v-model.number="movementForm.qty_out" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                 <div>
-                    <label class="block text-sm font-medium dark:text-white">Qty Back</label>
-                    <input type="number" v-model.number="movementForm.qty_back" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                 <div>
-                    <label class="block text-sm font-medium dark:text-white">Missing</label>
-                    <input type="number" v-model.number="movementForm.missing" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                 <div>
-                    <label class="block text-sm font-medium dark:text-white">Condition on Return</label>
-                    <input type="text" v-model="movementForm.condition_return" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" @click="showMovementModal = false" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <BaseModal :show="showMovementModal" :title="'Update Movement: ' + selectedLog?.item_name" @close="showMovementModal = false" maxWidthClass="max-w-md">
+        <form class="space-y-4" @submit.prevent="submitMovementUpdate">
+            <div>
+                <BaseInput v-model.number="movementForm.qty_out" label="Qty Out" type="number" />
+            </div>
+             <div>
+                <BaseInput v-model.number="movementForm.qty_back" label="Qty Back" type="number" />
+            </div>
+             <div>
+                <BaseInput v-model.number="movementForm.missing" label="Missing" type="number" />
+            </div>
+             <div>
+                <BaseInput v-model="movementForm.condition_return" label="Condition on Return" />
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <BaseButton variant="secondary" @click="showMovementModal = false">Cancel</BaseButton>
+                <BaseButton type="submit">Save</BaseButton>
+            </div>
+        </form>
+    </BaseModal>
 
     <!-- Maintenance Log Modal -->
-    <div v-if="showMaintenanceModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow w-full max-w-md p-6">
-            <h3 class="text-xl font-medium mb-4 dark:text-white">{{ isEditingMaintenance ? 'Resolve Issue' : 'Log New Issue' }}</h3>
-            <form @submit.prevent="submitMaintenance" class="space-y-4">
-                 <div v-if="!isEditingMaintenance">
-                    <label for="maint_item" class="block text-sm font-medium dark:text-white">Item</label>
-                    <select id="maint_item" v-model="maintenanceForm.item_id" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                        <option v-for="item in inventoryItems" :key="item.id" :value="item.id">{{ item.name }}</option>
-                    </select>
-                </div>
-                <div v-if="!isEditingMaintenance">
-                    <label for="maint_date" class="block text-sm font-medium dark:text-white">Date</label>
-                    <input id="maint_date" type="date" v-model="maintenanceForm.date" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                </div>
-                <div v-if="!isEditingMaintenance">
-                    <label for="maint_issue" class="block text-sm font-medium dark:text-white">Issue Description</label>
-                    <input id="maint_issue" type="text" v-model="maintenanceForm.issue" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                </div>
-                 <div>
-                    <label for="maint_action" class="block text-sm font-medium dark:text-white">Action Taken</label>
-                    <input id="maint_action" type="text" v-model="maintenanceForm.action" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                 <div>
-                    <label for="maint_cost" class="block text-sm font-medium dark:text-white">Cost ($)</label>
-                    <input id="maint_cost" type="number" step="0.01" v-model.number="maintenanceForm.cost" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                </div>
-                 <div>
-                    <label for="maint_status" class="block text-sm font-medium dark:text-white">Status</label>
-                    <select id="maint_status" v-model="maintenanceForm.status" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white">
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Fixed">Fixed</option>
-                        <option value="Faulty">Faulty / Needs Replacement</option>
-                    </select>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" @click="showMaintenanceModal = false" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <BaseModal :show="showMaintenanceModal" :title="isEditingMaintenance ? 'Resolve Issue' : 'Log New Issue'" @close="showMaintenanceModal = false" maxWidthClass="max-w-md">
+        <form class="space-y-4" @submit.prevent="submitMaintenance">
+             <div v-if="!isEditingMaintenance">
+                <BaseSelect v-model="maintenanceForm.item_id" label="Item" required>
+                    <option v-for="item in inventoryItems" :key="item.id" :value="item.id">{{ item.name }}</option>
+                </BaseSelect>
+            </div>
+            <div v-if="!isEditingMaintenance">
+                <BaseInput v-model="maintenanceForm.date" label="Date" type="date" required />
+            </div>
+            <div v-if="!isEditingMaintenance">
+                <BaseInput v-model="maintenanceForm.issue" label="Issue Description" required />
+            </div>
+             <div>
+                <BaseInput v-model="maintenanceForm.action" label="Action Taken" />
+            </div>
+             <div>
+                <BaseInput v-model.number="maintenanceForm.cost" label="Cost ($)" type="number" step="0.01" />
+            </div>
+             <div>
+                <BaseSelect v-model="maintenanceForm.status" label="Status">
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Fixed">Fixed</option>
+                    <option value="Faulty">Faulty / Needs Replacement</option>
+                </BaseSelect>
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <BaseButton variant="secondary" @click="showMaintenanceModal = false">Cancel</BaseButton>
+                <BaseButton type="submit">Save</BaseButton>
+            </div>
+        </form>
+    </BaseModal>
 
     <!-- Consumable Log Modal -->
-    <div v-if="showConsumableModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-        <div class="bg-white dark:bg-gray-700 rounded-lg shadow w-full max-w-md p-6">
-            <h3 class="text-xl font-medium mb-4 dark:text-white">Log Consumable Usage</h3>
-            <form @submit.prevent="submitConsumable" class="space-y-4">
-                 <div>
-                    <label for="cons_item" class="block text-sm font-medium dark:text-white">Item</label>
-                    <select id="cons_item" v-model="consumableForm.item_id" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                         <!-- Filter only consumable items -->
-                        <option v-for="item in inventoryItems.filter(i => i.category === 'Consumable')" :key="item.id" :value="item.id">{{ item.name }} (Current: {{ item.total_quantity }})</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="cons_date" class="block text-sm font-medium dark:text-white">Date</label>
-                    <input id="cons_date" type="date" v-model="consumableForm.date" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required>
-                </div>
-                <div>
-                    <label for="cons_qty" class="block text-sm font-medium dark:text-white">Qty Used</label>
-                    <input id="cons_qty" type="number" v-model.number="consumableForm.qty_used" class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white" required min="1">
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" @click="showConsumableModal = false" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <BaseModal :show="showConsumableModal" title="Log Consumable Usage" @close="showConsumableModal = false" maxWidthClass="max-w-md">
+        <form class="space-y-4" @submit.prevent="submitConsumable">
+             <div>
+                <BaseSelect v-model="consumableForm.item_id" label="Item" required>
+                     <!-- Filter only consumable items -->
+                    <option v-for="item in inventoryItems.filter(i => i.category === 'Consumable')" :key="item.id" :value="item.id">{{ item.name }} (Current: {{ item.total_quantity }})</option>
+                </BaseSelect>
+            </div>
+            <div>
+                <BaseInput v-model="consumableForm.date" label="Date" type="date" required />
+            </div>
+            <div>
+                <BaseInput v-model.number="consumableForm.qty_used" label="Qty Used" type="number" required min="1" />
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <BaseButton variant="secondary" @click="showConsumableModal = false">Cancel</BaseButton>
+                <BaseButton type="submit">Save</BaseButton>
+            </div>
+        </form>
+    </BaseModal>
 
   </div>
 </template>
@@ -351,6 +318,11 @@
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import api from '../api';
+import BaseButton from '../components/common/BaseButton.vue';
+import BaseInput from '../components/common/BaseInput.vue';
+import BaseSelect from '../components/common/BaseSelect.vue';
+import BaseModal from '../components/common/BaseModal.vue';
+import BaseBadge from '../components/common/BaseBadge.vue';
 
 const selectedCategory = ref('pa');
 const activeTab = ref('register');

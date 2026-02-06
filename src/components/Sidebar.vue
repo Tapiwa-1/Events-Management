@@ -10,42 +10,28 @@
 
         <ul class="space-y-2 font-medium">
             <li>
-                <router-link to="/" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Dashboard</span>
-                </router-link>
+                <NavLink to="/">Dashboard</NavLink>
             </li>
             <li>
-                <router-link to="/events" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Events</span>
-                </router-link>
+                <NavLink to="/events">Events</NavLink>
             </li>
             <li>
-                <router-link to="/inventory" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Inventory</span>
-                </router-link>
+                <NavLink to="/inventory">Inventory</NavLink>
             </li>
             <li>
-                <router-link to="/business" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Business Management</span>
-                </router-link>
+                <NavLink to="/business">Business Management</NavLink>
             </li>
             <li v-if="authStore.isStaff">
-                <router-link to="/logistics" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Logistics</span>
-                </router-link>
+                <NavLink to="/logistics">Logistics</NavLink>
             </li>
             <li v-if="authStore.isAdmin">
-                 <router-link to="/admin/logs" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Audit Logs</span>
-                </router-link>
+                 <NavLink to="/admin/logs">Audit Logs</NavLink>
             </li>
         </ul>
 
         <ul class="pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700">
             <li>
-                <router-link to="/profile" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                    <span class="ml-3">Profile</span>
-                </router-link>
+                <NavLink to="/profile">Profile</NavLink>
             </li>
             <li>
                 <button @click="handleLogout" class="flex w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-red-100 dark:hover:bg-red-900 group">
@@ -60,6 +46,7 @@
 <script setup>
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
+import NavLink from './common/NavLink.vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
