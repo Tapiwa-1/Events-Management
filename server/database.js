@@ -28,6 +28,7 @@ export async function initDb() {
       start_time TEXT,
       end_time TEXT,
       location TEXT,
+      phone TEXT,
       type TEXT,
       status TEXT,
       failure_reason TEXT,
@@ -173,6 +174,13 @@ export async function initDb() {
       FOREIGN KEY (loan_id) REFERENCES loans(id)
     );
   `);
+
+  // Migration for existing databases
+  try {
+    await db.exec('ALTER TABLE events ADD COLUMN phone TEXT');
+  } catch (e) {
+    // Column likely exists
+  }
 
   console.log('Database initialized');
   return db;
