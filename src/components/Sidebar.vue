@@ -1,11 +1,25 @@
 <template>
-  <aside id="default-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+  <aside
+    id="default-sidebar"
+    :class="[
+        'fixed top-0 left-0 z-40 w-64 h-screen transition-transform sm:translate-x-0 bg-white dark:bg-gray-800',
+        isOpen ? 'translate-x-0 shadow-lg' : '-translate-x-full'
+    ]"
+    aria-label="Sidebar"
+  >
     <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-        <div class="mb-5 px-2">
-            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">EventMgr</span>
-            <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ authStore.user?.name }} ({{ authStore.user?.role }})
+        <div class="mb-5 px-2 flex justify-between items-center">
+            <div>
+                <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">EventMgr</span>
+                <div class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ authStore.user?.name }} ({{ authStore.user?.role }})
+                </div>
             </div>
+            <!-- Close button for mobile -->
+            <button @click="$emit('close')" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center sm:hidden dark:hover:bg-gray-600 dark:hover:text-white">
+                <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="sr-only">Close sidebar</span>
+            </button>
         </div>
 
         <ul class="space-y-2 font-medium">
@@ -101,6 +115,15 @@
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
 import NavLink from './common/NavLink.vue';
+
+const props = defineProps({
+    isOpen: {
+        type: Boolean,
+        default: false
+    }
+});
+
+const emit = defineEmits(['close']);
 
 const authStore = useAuthStore();
 const router = useRouter();
