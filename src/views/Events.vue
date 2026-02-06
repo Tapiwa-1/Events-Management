@@ -92,6 +92,64 @@
                         <input v-model="form.location" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
                     </div>
 
+                    <!-- Services -->
+                    <div class="col-span-2 border-t dark:border-gray-600 pt-4">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Services</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" v-model="selectedServices.pa" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-gray-900 dark:text-white">PA System</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" v-model="selectedServices.photography" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-gray-900 dark:text-white">Photography</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" v-model="selectedServices.decor" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-gray-900 dark:text-white">Decor</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Photography/Decor Messages -->
+                    <div v-if="selectedServices.photography || selectedServices.decor" class="col-span-2">
+                        <p v-if="selectedServices.photography" class="text-sm text-yellow-600 dark:text-yellow-400">Photography inventory management coming soon.</p>
+                        <p v-if="selectedServices.decor" class="text-sm text-yellow-600 dark:text-yellow-400">Decor inventory management coming soon.</p>
+                    </div>
+
+                    <!-- PA System Inventory Selection -->
+                    <div v-if="selectedServices.pa && !isEditing" class="col-span-2 border rounded-lg p-4 dark:border-gray-600">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">Select PA System Inventory</h4>
+                        <div v-if="!form.start_time || !form.end_time" class="text-sm text-red-500">
+                            Please select Start and End times to check availability.
+                        </div>
+                        <div v-else>
+                            <button type="button" @click="checkAvailability" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-xs px-3 py-2 mb-3">Check Availability</button>
+
+                            <div v-if="availableInventory.length > 0" class="overflow-x-auto">
+                                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                        <tr>
+                                            <th class="px-4 py-2">Item</th>
+                                            <th class="px-4 py-2">Available</th>
+                                            <th class="px-4 py-2">Book Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="item in availableInventory" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                            <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ item.name }}</td>
+                                            <td class="px-4 py-2">{{ item.available_quantity }}</td>
+                                            <td class="px-4 py-2">
+                                                <input type="number" v-model.number="item.selected_qty" min="0" :max="item.available_quantity" class="w-20 p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p v-if="availableInventory.length === 0 && availabilityChecked" class="text-sm text-gray-500">No inventory available for this time slot.</p>
+                        </div>
+                    </div>
+
                     <!-- Financials -->
                     <div>
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="total_cost">Total Cost ($)</label>
@@ -129,6 +187,38 @@
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reason for Failure/Cancel</label>
                         <textarea v-model="form.failure_reason" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"></textarea>
                     </div>
+
+                    <!-- Return Inventory (Edit only, when completed) -->
+                    <div v-if="isEditing && form.status === 'completed'" class="col-span-2 border-t dark:border-gray-600 pt-4 mt-2">
+                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">Return Inventory</h4>
+                        <div v-if="bookedItems.length === 0" class="text-sm text-gray-500">No inventory booked for this event.</div>
+                        <div v-else class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                    <tr>
+                                        <th class="px-4 py-2">Item</th>
+                                        <th class="px-4 py-2">Qty Out</th>
+                                        <th class="px-4 py-2">Qty Back</th>
+                                        <th class="px-4 py-2">Missing</th>
+                                        <th class="px-4 py-2">Condition</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="item in bookedItems" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                        <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ item.item_name }}</td>
+                                        <td class="px-4 py-2">{{ item.quantity }}</td>
+                                        <td class="px-4 py-2">
+                                            <input type="number" v-model.number="item.qty_back" @input="calculateMissing(item)" min="0" :max="item.quantity" class="w-20 p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        </td>
+                                        <td class="px-4 py-2 text-red-600 font-bold">{{ item.missing }}</td>
+                                        <td class="px-4 py-2">
+                                            <input type="text" v-model="item.condition_return" placeholder="Good" class="w-full p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </form>
             </div>
 
@@ -155,6 +245,7 @@ const events = ref([]);
 const showModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
+const availabilityChecked = ref(false);
 
 const form = ref({
   name: '',
@@ -166,8 +257,18 @@ const form = ref({
   total_cost: 0,
   amount_paid: 0,
   transport_cost: 0,
-  failure_reason: ''
+  failure_reason: '',
+  inventory: []
 });
+
+const selectedServices = ref({
+    pa: false,
+    photography: false,
+    decor: false
+});
+
+const availableInventory = ref([]);
+const bookedItems = ref([]); // For return flow
 
 const remaining = computed(() => {
     return (parseFloat(form.value.total_cost) || 0) - (parseFloat(form.value.amount_paid) || 0);
@@ -212,15 +313,38 @@ const openModal = () => {
       total_cost: 0,
       amount_paid: 0,
       transport_cost: 0,
-      failure_reason: ''
+      failure_reason: '',
+      inventory: []
   };
+  selectedServices.value = { pa: false, photography: false, decor: false };
+  availableInventory.value = [];
+  availabilityChecked.value = false;
   showModal.value = true;
 };
 
-const editEvent = (event) => {
+const editEvent = async (event) => {
   isEditing.value = true;
   editingId.value = event.id;
   form.value = { ...event };
+  selectedServices.value = { pa: false, photography: false, decor: false }; // Reset services
+
+  // Load booked items if any
+  try {
+      const res = await api.get('/inventory/movement', { params: { event_id: event.id } });
+      bookedItems.value = res.data.map(item => ({
+          ...item,
+          qty_back: item.qty_back !== null ? item.qty_back : item.quantity, // Default to full return if not set
+          missing: item.missing || 0,
+          condition_return: item.condition_return || ''
+      }));
+      // If items exist, assume PA was selected (simple logic for now)
+      if (bookedItems.value.length > 0) {
+          selectedServices.value.pa = true;
+      }
+  } catch (err) {
+      console.error(err);
+  }
+
   showModal.value = true;
 };
 
@@ -228,17 +352,56 @@ const closeModal = () => {
   showModal.value = false;
 };
 
+const checkAvailability = async () => {
+    if (!form.value.start_time || !form.value.end_time) return;
+    try {
+        const res = await api.get('/inventory', {
+            params: {
+                start_time: form.value.start_time,
+                end_time: form.value.end_time,
+                type: 'pa'
+            }
+        });
+        availableInventory.value = res.data.map(item => ({...item, selected_qty: 0}));
+        availabilityChecked.value = true;
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+const calculateMissing = (item) => {
+    item.missing = Math.max(0, item.quantity - (item.qty_back || 0));
+};
+
 const handleSubmit = async () => {
   try {
+    // Prepare inventory payload
+    const inventoryPayload = availableInventory.value
+        .filter(item => item.selected_qty > 0)
+        .map(item => ({ item_id: item.id, quantity: item.selected_qty }));
+
     const payload = {
         ...form.value,
         amount_paid: Number(form.value.amount_paid) || 0,
         total_cost: Number(form.value.total_cost) || 0,
-        transport_cost: Number(form.value.transport_cost) || 0
+        transport_cost: Number(form.value.transport_cost) || 0,
+        inventory: inventoryPayload
     };
 
     if (isEditing.value) {
         await api.put(`/events/${editingId.value}`, payload);
+
+        // Save Return Info
+        if (form.value.status === 'completed' && bookedItems.value.length > 0) {
+            for (const item of bookedItems.value) {
+                await api.put(`/inventory/booking/${item.id}`, {
+                    qty_back: item.qty_back,
+                    missing: item.missing,
+                    condition_return: item.condition_return,
+                    status: 'returned' // Mark as returned
+                });
+            }
+        }
     } else {
         await api.post('/events', { ...payload, client_id: authStore.user?.id || 1 });
     }
