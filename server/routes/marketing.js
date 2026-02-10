@@ -1,6 +1,8 @@
 import express from 'express';
 import { getDb } from '../database.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { sendSMS } from '../broadcast/smsSender.js';
+import { getRecipients } from '../broadcast/audienceManager.js';
 
 const router = express.Router();
 
@@ -33,31 +35,27 @@ router.post('/inquiries', async (req, res) => {
   }
 });
 
-// Mock Send SMS
+// Send SMS
 router.post('/sms/send', async (req, res) => {
-  const { to, message, audience } = req.body; // to can be array or string
+  const { to, message, audience } = req.body; // to can be array or string (for manual)
   const db = await getDb();
   try {
-    let recipients = [];
+    // Determine recipients using audience manager
+    // If audience is manual, 'to' is passed. Otherwise 'to' might be ignored or used differently.
+    // The extracted function logic handles this if we pass manual 'to' correctly.
+    // In my extraction, I used (audience, db, manualTo).
 
-    if (audience === 'all') {
-        // Fetch all unique phones from inquiries and events
-        const inquiryPhones = await db.all('SELECT DISTINCT phone FROM inquiries WHERE phone IS NOT NULL AND status != "removed"');
-        const eventPhones = await db.all('SELECT DISTINCT client_phone as phone FROM events WHERE client_phone IS NOT NULL');
+    // Logic check: if audience is undefined/null (manual mode likely implies audience='manual' from frontend),
+    // but if frontend just sends 'to', we might need to handle defaults.
+    // Assuming frontend sends audience='manual' when specific numbers are provided.
 
-        const phoneSet = new Set();
-        inquiryPhones.forEach(p => phoneSet.add(p.phone));
-        eventPhones.forEach(p => phoneSet.add(p.phone));
+    // Compatibility: If 'audience' is not provided but 'to' is, treat as manual.
+    const effectiveAudience = audience || 'manual';
 
-        recipients = Array.from(phoneSet);
-    } else {
-        recipients = Array.isArray(to) ? to : [to];
-    }
+    const recipients = await getRecipients(effectiveAudience, db, to);
+    const result = await sendSMS(recipients, message);
 
-    console.log(`[SMS MOCK] Sending message "${message}" to ${recipients.length} recipients: ${recipients.join(', ')}`);
-    // In a real app, we would call an SMS provider API here
-    // and log the result to a database table.
-    res.json({ success: true, count: recipients.length });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -81,8 +79,7 @@ router.post('/automations/run', async (req, res) => {
 
         for (const inquiry of inquiries) {
             if (inquiry.phone) {
-                // Mock Send
-                console.log(`[SMS AUTO] Sending follow-up ${inquiry.message_count + 1}/3 to ${inquiry.phone}`);
+                await sendSMS(inquiry.phone, `Follow-up ${inquiry.message_count + 1}/3`);
                 sentCount++;
 
                 const newCount = inquiry.message_count + 1;
@@ -123,7 +120,7 @@ router.post('/reminders', async (req, res) => {
         let sentCount = 0;
         for (const event of events) {
             if (event.client_phone) {
-                console.log(`[SMS MOCK] Reminder sent to ${event.client_phone} for event ${event.name} on ${event.date}`);
+                await sendSMS(event.client_phone, `Reminder: Your event ${event.name} is on ${event.date}`);
                 sentCount++;
             }
         }

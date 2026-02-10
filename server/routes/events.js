@@ -1,5 +1,6 @@
 import express from 'express';
 import { getDb } from '../database.js';
+import { sendSMS } from '../broadcast/smsSender.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.post('/', async (req, res) => {
     const eventId = result.lastID;
 
     if (client_phone) {
-      console.log(`[SMS MOCK] Sending "Your event '${name}' has been booked successfully!" to ${client_phone}`);
+      await sendSMS(client_phone, `Your event '${name}' has been booked successfully!`);
     }
 
     // Handle Inventory Bookings
