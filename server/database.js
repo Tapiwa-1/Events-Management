@@ -190,6 +190,14 @@ export async function initDb() {
     // Column likely exists
   }
 
+  try {
+    await db.exec('ALTER TABLE inquiries ADD COLUMN message_count INTEGER DEFAULT 0');
+    await db.exec('ALTER TABLE inquiries ADD COLUMN last_message_sent TEXT');
+    console.log('Added message_count and last_message_sent to inquiries table');
+  } catch (e) {
+    // Columns likely exist
+  }
+
   console.log('Database initialized');
   return db;
 }
