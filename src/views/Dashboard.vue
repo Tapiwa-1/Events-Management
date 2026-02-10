@@ -101,7 +101,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import api from '../api';
 import { getFinancialData } from '../utils/financials';
@@ -138,6 +138,7 @@ const loading = ref(true);
 const rangeMode = ref('week'); // 'week', 'month', 'custom'
 const customStart = ref('');
 const customEnd = ref('');
+const isDark = ref(false); // Reactive dark mode state
 
 // Data
 const events = ref([]);
@@ -155,6 +156,46 @@ const processedData = ref({
     bookings: [],
     statusCounts: {}
 });
+
+// Theme Detection Logic
+const updateTheme = () => {
+    // Check both class strategy and system preference
+    isDark.value = document.documentElement.classList.contains('dark') ||
+                   window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
+let observer;
+let mediaQuery;
+
+onMounted(() => {
+    loadData();
+    updateTheme();
+
+    // Listen for class changes on html element (Manual toggle)
+    observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    // Listen for system preference changes (System toggle)
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', updateTheme);
+    } else {
+        // Fallback for older browsers
+        mediaQuery.addListener(updateTheme);
+    }
+});
+
+onUnmounted(() => {
+    if (observer) observer.disconnect();
+    if (mediaQuery) {
+        if (mediaQuery.removeEventListener) {
+            mediaQuery.removeEventListener('change', updateTheme);
+        } else {
+             mediaQuery.removeListener(updateTheme);
+        }
+    }
+});
+
 
 const loadData = async () => {
     loading.value = true;
@@ -240,19 +281,15 @@ watch([customStart, customEnd], () => {
     if (rangeMode.value === 'custom') processData();
 });
 
-onMounted(() => {
-    loadData();
-});
-
-// Chart Configuration
-const chartOptions = {
+// Chart Configuration (Computed to react to theme changes)
+const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
         legend: {
             position: 'bottom',
             labels: {
-                 color: (context) => document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
+                 color: isDark.value ? '#e5e7eb' : '#374151' // gray-200 : gray-700
             }
         },
         tooltip: {
@@ -262,28 +299,28 @@ const chartOptions = {
     },
     scales: {
         x: {
-             ticks: { color: (context) => document.documentElement.classList.contains('dark') ? '#9ca3af' : '#374151' },
-             grid: { color: (context) => document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb' }
+             ticks: { color: isDark.value ? '#9ca3af' : '#374151' }, // gray-400 : gray-700
+             grid: { color: isDark.value ? '#374151' : '#e5e7eb' }  // gray-700 : gray-200
         },
         y: {
-             ticks: { color: (context) => document.documentElement.classList.contains('dark') ? '#9ca3af' : '#374151' },
-             grid: { color: (context) => document.documentElement.classList.contains('dark') ? '#374151' : '#e5e7eb' }
+             ticks: { color: isDark.value ? '#9ca3af' : '#374151' },
+             grid: { color: isDark.value ? '#374151' : '#e5e7eb' }
         }
     }
-};
+}));
 
-const doughnutOptions = {
+const doughnutOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
         legend: {
             position: 'bottom',
              labels: {
-                 color: (context) => document.documentElement.classList.contains('dark') ? '#fff' : '#374151'
+                 color: isDark.value ? '#e5e7eb' : '#374151'
             }
         }
     }
-};
+}));
 
 // Chart Data Computed Properties
 const cashFlowData = computed(() => ({
