@@ -5,7 +5,7 @@ import { Event } from '../models/Event.js';
  * Audience Management Logic
  */
 
-export async function getRecipients(audience, db, manualTo = null) {
+export async function getRecipients(audience, manualTo = null) {
     let recipients = [];
 
     if (audience === 'manual') {
