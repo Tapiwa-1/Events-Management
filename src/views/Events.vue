@@ -2,34 +2,29 @@
   <div>
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold dark:text-white">Events Management</h1>
-      <button @click="openModal()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-        Create New Event
-      </button>
+      <BaseButton @click="openModal">Create New Event</BaseButton>
     </div>
 
     <!-- Events Table -->
-    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-            <th scope="col" class="px-6 py-3">Name</th>
-            <th scope="col" class="px-6 py-3">Date</th>
-            <th scope="col" class="px-6 py-3">Status</th>
-            <th scope="col" class="px-6 py-3">Total</th>
-            <th scope="col" class="px-6 py-3">Paid</th>
-            <th scope="col" class="px-6 py-3">Remaining</th>
-            <th scope="col" class="px-6 py-3">Transport</th>
-            <th scope="col" class="px-6 py-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+    <BaseTable>
+      <template #head>
+          <th scope="col" class="px-6 py-3">Name</th>
+          <th scope="col" class="px-6 py-3">Date</th>
+          <th scope="col" class="px-6 py-3">Status</th>
+          <th scope="col" class="px-6 py-3">Total</th>
+          <th scope="col" class="px-6 py-3">Paid</th>
+          <th scope="col" class="px-6 py-3">Remaining</th>
+          <th scope="col" class="px-6 py-3">Transport</th>
+          <th scope="col" class="px-6 py-3">Actions</th>
+      </template>
+      <template #body>
           <tr v-for="event in events" :key="event.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ event.name }}</td>
             <td class="px-6 py-4">{{ formatDate(event.date) }}</td>
             <td class="px-6 py-4">
-              <span :class="statusClass(event.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+              <BaseBadge :variant="getBadgeVariant(event.status)">
                 {{ event.status }}
-              </span>
+              </BaseBadge>
             </td>
             <td class="px-6 py-4">${{ formatCurrency(event.total_cost) }}</td>
             <td class="px-6 py-4">${{ formatCurrency(event.amount_paid) }}</td>
@@ -44,54 +39,38 @@
           <tr v-if="events.length === 0">
             <td colspan="8" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No events found.</td>
           </tr>
-        </tbody>
-      </table>
-    </div>
+      </template>
+    </BaseTable>
 
     <!-- Modal -->
-    <div v-if="showModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full flex justify-center items-center bg-gray-900 bg-opacity-50">
-      <div class="relative w-full max-w-2xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <!-- Modal header -->
-            <div class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    {{ isEditing ? 'Edit Event' : 'Create New Event' }}
-                </h3>
-                <button @click="closeModal" type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white">
-                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    <span class="sr-only">Close modal</span>
-                </button>
-            </div>
+    <BaseModal :show="showModal" :title="isEditing ? 'Edit Event' : 'Create New Event'" @close="closeModal">
+      <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="col-span-2 md:col-span-1">
+              <BaseInput v-model="form.name" label="Event Name" placeholder="Wedding" required />
+          </div>
 
-            <!-- Modal body -->
-            <div class="p-6 space-y-6">
-                <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="col-span-2 md:col-span-1">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Event Name</label>
-                        <input v-model="form.name" type="text" placeholder="Wedding" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required />
-                    </div>
+          <div class="col-span-2 md:col-span-1">
+              <BaseInput v-model="form.date" label="Date" type="date" required />
+          </div>
 
-                    <div class="col-span-2 md:col-span-1">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
-                        <input v-model="form.date" type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" required />
-                    </div>
+          <div>
+              <BaseInput v-model="form.start_time" label="Start Time" type="datetime-local" />
+          </div>
 
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Start Time</label>
-                        <input v-model="form.start_time" type="datetime-local" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-                    </div>
+          <div>
+              <BaseInput v-model="form.end_time" label="End Time" type="datetime-local" />
+          </div>
 
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">End Time</label>
-                        <input v-model="form.end_time" type="datetime-local" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-                    </div>
+          <div class="col-span-2">
+              <BaseInput v-model="form.location" label="Location" />
+          </div>
 
-                    <div class="col-span-2">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Location</label>
-                        <input v-model="form.location" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-                    </div>
+          <!-- Financials -->
+          <div>
+              <BaseInput v-model.number="form.total_cost" label="Total Cost ($)" type="number" step="0.01" min="0" placeholder="0.00" />
+          </div>
 
+<<<<<<< HEAD
                     <!-- Services -->
                     <div class="col-span-2 border-t dark:border-gray-600 pt-4">
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Services</label>
@@ -155,33 +134,38 @@
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="total_cost">Total Cost ($)</label>
                         <input id="total_cost" v-model.number="form.total_cost" type="number" step="0.01" min="0" placeholder="0.00" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
                     </div>
+=======
+          <div>
+              <BaseInput v-model.number="form.amount_paid" label="Amount Paid / Deposit ($)" type="number" step="0.01" min="0" placeholder="0.00" />
+          </div>
+>>>>>>> refactor-reusable-components-11476131390176582777
 
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="amount_paid">Amount Paid / Deposit ($)</label>
-                        <input id="amount_paid" v-model.number="form.amount_paid" type="number" step="0.01" min="0" placeholder="0.00" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-                    </div>
+          <div>
+              <BaseInput v-model.number="form.transport_cost" label="Transport Cost ($)" type="number" step="0.01" min="0" placeholder="0.00" />
+          </div>
 
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="transport_cost">Transport Cost ($)</label>
-                        <input id="transport_cost" v-model.number="form.transport_cost" type="number" step="0.01" min="0" placeholder="0.00" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-                    </div>
+          <div class="flex items-center pt-6">
+              <div class="text-lg font-bold text-gray-700 dark:text-gray-300">
+              Remaining: <span :class="remaining < 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-500'">${{ formatCurrency(remaining) }}</span>
+              </div>
+          </div>
 
-                    <div class="flex items-center pt-6">
-                        <div class="text-lg font-bold text-gray-700 dark:text-gray-300">
-                        Remaining: <span :class="remaining < 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-500'">${{ formatCurrency(remaining) }}</span>
-                        </div>
-                    </div>
+          <!-- Status (Edit only) -->
+          <div v-if="isEditing" class="col-span-2 border-t dark:border-gray-600 pt-4 mt-2">
+              <BaseSelect v-model="form.status" label="Status">
+                  <option value="planned">Planned</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+              </BaseSelect>
+          </div>
 
-                    <!-- Status (Edit only) -->
-                    <div v-if="isEditing" class="col-span-2 border-t dark:border-gray-600 pt-4 mt-2">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Status</label>
-                        <select v-model="form.status" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white">
-                        <option value="planned">Planned</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
+          <!-- Failure Reason (Edit only) -->
+          <div v-if="isEditing && (form.status === 'cancelled' || form.status === 'failed')" class="col-span-2">
+              <BaseTextarea v-model="form.failure_reason" label="Reason for Failure/Cancel" />
+          </div>
+      </form>
 
+<<<<<<< HEAD
                     <!-- Failure Reason (Edit only) -->
                     <div v-if="isEditing && (form.status === 'cancelled' || form.status === 'failed')" class="col-span-2">
                         <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reason for Failure/Cancel</label>
@@ -232,6 +216,15 @@
         </div>
       </div>
     </div>
+=======
+      <template #footer>
+          <BaseButton variant="secondary" @click="closeModal">Cancel</BaseButton>
+          <BaseButton @click="handleSubmit">
+              {{ isEditing ? 'Save Changes' : 'Create Event' }}
+          </BaseButton>
+      </template>
+    </BaseModal>
+>>>>>>> refactor-reusable-components-11476131390176582777
   </div>
 </template>
 
@@ -239,6 +232,13 @@
 import { ref, onMounted, computed } from 'vue';
 import api from '../api';
 import { useAuthStore } from '../stores/auth';
+import BaseButton from '../components/common/BaseButton.vue';
+import BaseInput from '../components/common/BaseInput.vue';
+import BaseSelect from '../components/common/BaseSelect.vue';
+import BaseTextarea from '../components/common/BaseTextarea.vue';
+import BaseModal from '../components/common/BaseModal.vue';
+import BaseBadge from '../components/common/BaseBadge.vue';
+import BaseTable from '../components/common/BaseTable.vue';
 
 const authStore = useAuthStore();
 const events = ref([]);
@@ -292,11 +292,11 @@ const formatCurrency = (val) => {
     return (parseFloat(val) || 0).toFixed(2);
 };
 
-const statusClass = (status) => {
+const getBadgeVariant = (status) => {
     switch(status) {
-        case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-        case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-        default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+        case 'completed': return 'success';
+        case 'cancelled': return 'danger';
+        default: return 'primary';
     }
 };
 
