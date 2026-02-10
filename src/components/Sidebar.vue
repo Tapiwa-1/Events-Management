@@ -65,6 +65,16 @@
                     Business Management
                 </NavLink>
             </li>
+            <li>
+                <NavLink to="/marketing">
+                    <template #icon>
+                        <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M18 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2v4l5-4h9a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2Zm-1 12H3V2h14v10Z"/>
+                        </svg>
+                    </template>
+                    Marketing
+                </NavLink>
+            </li>
             <li v-if="authStore.isStaff">
                 <NavLink to="/logistics">
                     <template #icon>

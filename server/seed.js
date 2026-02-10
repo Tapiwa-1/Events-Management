@@ -79,6 +79,16 @@ async function seed() {
         'client@example.com', passwordHash, 'customer', 'Client User'
     ]);
     console.log('Seeded users');
+  } else {
+    // Check if admin exists
+    const admin = await db.get("SELECT * FROM users WHERE email = 'admin@example.com'");
+    if (!admin) {
+        const passwordHash = bcrypt.hashSync('password123', 10);
+        await db.run(`INSERT INTO users (email, password_hash, role, full_name) VALUES (?, ?, ?, ?)`,
+            ['admin@example.com', passwordHash, 'admin', 'System Admin']
+        );
+        console.log('Seeded admin user');
+    }
   }
 
   console.log('Seeding complete');

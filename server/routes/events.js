@@ -14,16 +14,20 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { client_id, name, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost, inventory } = req.body;
+  const { client_id, name, client_phone, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost, inventory } = req.body;
   const db = await getDb();
   try {
     const result = await db.run(
-      `INSERT INTO events (client_id, name, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [client_id, name, date, start_time, end_time, location, type, status || 'planned', amount_paid || 0, total_cost || 0, transport_cost || 0]
+      `INSERT INTO events (client_id, name, client_phone, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [client_id, name, client_phone, date, start_time, end_time, location, type, status || 'planned', amount_paid || 0, total_cost || 0, transport_cost || 0]
     );
 
     const eventId = result.lastID;
+
+    if (client_phone) {
+      console.log(`[SMS MOCK] Sending "Your event '${name}' has been booked successfully!" to ${client_phone}`);
+    }
 
     // Handle Inventory Bookings
     if (inventory && Array.isArray(inventory) && inventory.length > 0) {
@@ -46,7 +50,7 @@ router.post('/', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-  let { status, failure_reason, amount_paid, name, location, date, start_time, end_time, type, total_cost, transport_cost } = req.body;
+  let { status, failure_reason, amount_paid, name, client_phone, location, date, start_time, end_time, type, total_cost, transport_cost } = req.body;
   const db = await getDb();
 
   // If status is completing, auto-pay remaining balance
@@ -65,7 +69,7 @@ router.put('/:id', async (req, res) => {
   const updates = [];
   const params = [];
 
-  const fields = { status, failure_reason, amount_paid, name, location, date, start_time, end_time, type, total_cost, transport_cost };
+  const fields = { status, failure_reason, amount_paid, name, client_phone, location, date, start_time, end_time, type, total_cost, transport_cost };
 
   for (const [key, value] of Object.entries(fields)) {
       if (value !== undefined) {

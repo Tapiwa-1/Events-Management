@@ -50,6 +50,10 @@
           </div>
 
           <div class="col-span-2 md:col-span-1">
+              <BaseInput v-model="form.client_phone" label="Client Phone" placeholder="+263..." />
+          </div>
+
+          <div class="col-span-2 md:col-span-1">
               <BaseInput v-model="form.date" label="Date" type="date" required />
           </div>
 
@@ -65,80 +69,72 @@
               <BaseInput v-model="form.location" label="Location" />
           </div>
 
+          <!-- Services -->
+          <div class="col-span-2 border-t dark:border-gray-600 pt-4">
+              <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Services</label>
+              <div class="flex gap-4">
+                  <label class="flex items-center space-x-2">
+                      <input type="checkbox" v-model="selectedServices.pa" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                      <span class="text-sm text-gray-900 dark:text-white">PA System</span>
+                  </label>
+                  <label class="flex items-center space-x-2">
+                      <input type="checkbox" v-model="selectedServices.photography" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                      <span class="text-sm text-gray-900 dark:text-white">Photography</span>
+                  </label>
+                  <label class="flex items-center space-x-2">
+                      <input type="checkbox" v-model="selectedServices.decor" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                      <span class="text-sm text-gray-900 dark:text-white">Decor</span>
+                  </label>
+              </div>
+          </div>
+
+          <!-- Photography/Decor Messages -->
+          <div v-if="selectedServices.photography || selectedServices.decor" class="col-span-2">
+              <p v-if="selectedServices.photography" class="text-sm text-yellow-600 dark:text-yellow-400">Photography inventory management coming soon.</p>
+              <p v-if="selectedServices.decor" class="text-sm text-yellow-600 dark:text-yellow-400">Decor inventory management coming soon.</p>
+          </div>
+
+          <!-- PA System Inventory Selection -->
+          <div v-if="selectedServices.pa && !isEditing" class="col-span-2 border rounded-lg p-4 dark:border-gray-600">
+              <h4 class="font-medium text-gray-900 dark:text-white mb-2">Select PA System Inventory</h4>
+              <div v-if="!form.start_time || !form.end_time" class="text-sm text-red-500">
+                  Please select Start and End times to check availability.
+              </div>
+              <div v-else>
+                  <button type="button" @click="checkAvailability" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-xs px-3 py-2 mb-3">Check Availability</button>
+
+                  <div v-if="availableInventory.length > 0" class="overflow-x-auto">
+                      <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                              <tr>
+                                  <th class="px-4 py-2">Item</th>
+                                  <th class="px-4 py-2">Available</th>
+                                  <th class="px-4 py-2">Book Qty</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr v-for="item in availableInventory" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                                  <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ item.name }}</td>
+                                  <td class="px-4 py-2">{{ item.available_quantity }}</td>
+                                  <td class="px-4 py-2">
+                                      <input type="number" v-model.number="item.selected_qty" min="0" :max="item.available_quantity" class="w-20 p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+                  <p v-if="availableInventory.length === 0 && availabilityChecked" class="text-sm text-gray-500">No inventory available for this time slot.</p>
+              </div>
+          </div>
+
           <!-- Financials -->
           <div>
               <BaseInput v-model.number="form.total_cost" label="Total Cost ($)" type="number" step="0.01" min="0" placeholder="0.00" />
           </div>
 
-<<<<<<< HEAD
-                    <!-- Services -->
-                    <div class="col-span-2 border-t dark:border-gray-600 pt-4">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Services</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox" v-model="selectedServices.pa" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                <span class="text-sm text-gray-900 dark:text-white">PA System</span>
-                            </label>
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox" v-model="selectedServices.photography" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                <span class="text-sm text-gray-900 dark:text-white">Photography</span>
-                            </label>
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox" v-model="selectedServices.decor" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                <span class="text-sm text-gray-900 dark:text-white">Decor</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Photography/Decor Messages -->
-                    <div v-if="selectedServices.photography || selectedServices.decor" class="col-span-2">
-                        <p v-if="selectedServices.photography" class="text-sm text-yellow-600 dark:text-yellow-400">Photography inventory management coming soon.</p>
-                        <p v-if="selectedServices.decor" class="text-sm text-yellow-600 dark:text-yellow-400">Decor inventory management coming soon.</p>
-                    </div>
-
-                    <!-- PA System Inventory Selection -->
-                    <div v-if="selectedServices.pa && !isEditing" class="col-span-2 border rounded-lg p-4 dark:border-gray-600">
-                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">Select PA System Inventory</h4>
-                        <div v-if="!form.start_time || !form.end_time" class="text-sm text-red-500">
-                            Please select Start and End times to check availability.
-                        </div>
-                        <div v-else>
-                            <button type="button" @click="checkAvailability" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-xs px-3 py-2 mb-3">Check Availability</button>
-
-                            <div v-if="availableInventory.length > 0" class="overflow-x-auto">
-                                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                        <tr>
-                                            <th class="px-4 py-2">Item</th>
-                                            <th class="px-4 py-2">Available</th>
-                                            <th class="px-4 py-2">Book Qty</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="item in availableInventory" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                            <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ item.name }}</td>
-                                            <td class="px-4 py-2">{{ item.available_quantity }}</td>
-                                            <td class="px-4 py-2">
-                                                <input type="number" v-model.number="item.selected_qty" min="0" :max="item.available_quantity" class="w-20 p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <p v-if="availableInventory.length === 0 && availabilityChecked" class="text-sm text-gray-500">No inventory available for this time slot.</p>
-                        </div>
-                    </div>
-
-                    <!-- Financials -->
-                    <div>
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="total_cost">Total Cost ($)</label>
-                        <input id="total_cost" v-model.number="form.total_cost" type="number" step="0.01" min="0" placeholder="0.00" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white" />
-                    </div>
-=======
           <div>
               <BaseInput v-model.number="form.amount_paid" label="Amount Paid / Deposit ($)" type="number" step="0.01" min="0" placeholder="0.00" />
           </div>
->>>>>>> refactor-reusable-components-11476131390176582777
 
           <div>
               <BaseInput v-model.number="form.transport_cost" label="Transport Cost ($)" type="number" step="0.01" min="0" placeholder="0.00" />
@@ -163,60 +159,39 @@
           <div v-if="isEditing && (form.status === 'cancelled' || form.status === 'failed')" class="col-span-2">
               <BaseTextarea v-model="form.failure_reason" label="Reason for Failure/Cancel" />
           </div>
+
+          <!-- Return Inventory (Edit only, when completed) -->
+          <div v-if="isEditing && form.status === 'completed'" class="col-span-2 border-t dark:border-gray-600 pt-4 mt-2">
+              <h4 class="font-medium text-gray-900 dark:text-white mb-2">Return Inventory</h4>
+              <div v-if="bookedItems.length === 0" class="text-sm text-gray-500">No inventory booked for this event.</div>
+              <div v-else class="overflow-x-auto">
+                  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                          <tr>
+                              <th class="px-4 py-2">Item</th>
+                              <th class="px-4 py-2">Qty Out</th>
+                              <th class="px-4 py-2">Qty Back</th>
+                              <th class="px-4 py-2">Missing</th>
+                              <th class="px-4 py-2">Condition</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          <tr v-for="item in bookedItems" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                              <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ item.item_name }}</td>
+                              <td class="px-4 py-2">{{ item.quantity }}</td>
+                              <td class="px-4 py-2">
+                                  <input type="number" v-model.number="item.qty_back" @input="calculateMissing(item)" min="0" :max="item.quantity" class="w-20 p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                              </td>
+                              <td class="px-4 py-2 text-red-600 font-bold">{{ item.missing }}</td>
+                              <td class="px-4 py-2">
+                                  <input type="text" v-model="item.condition_return" placeholder="Good" class="w-full p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                              </td>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
       </form>
-
-<<<<<<< HEAD
-                    <!-- Failure Reason (Edit only) -->
-                    <div v-if="isEditing && (form.status === 'cancelled' || form.status === 'failed')" class="col-span-2">
-                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reason for Failure/Cancel</label>
-                        <textarea v-model="form.failure_reason" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"></textarea>
-                    </div>
-
-                    <!-- Return Inventory (Edit only, when completed) -->
-                    <div v-if="isEditing && form.status === 'completed'" class="col-span-2 border-t dark:border-gray-600 pt-4 mt-2">
-                        <h4 class="font-medium text-gray-900 dark:text-white mb-2">Return Inventory</h4>
-                        <div v-if="bookedItems.length === 0" class="text-sm text-gray-500">No inventory booked for this event.</div>
-                        <div v-else class="overflow-x-auto">
-                            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                    <tr>
-                                        <th class="px-4 py-2">Item</th>
-                                        <th class="px-4 py-2">Qty Out</th>
-                                        <th class="px-4 py-2">Qty Back</th>
-                                        <th class="px-4 py-2">Missing</th>
-                                        <th class="px-4 py-2">Condition</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in bookedItems" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                        <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">{{ item.item_name }}</td>
-                                        <td class="px-4 py-2">{{ item.quantity }}</td>
-                                        <td class="px-4 py-2">
-                                            <input type="number" v-model.number="item.qty_back" @input="calculateMissing(item)" min="0" :max="item.quantity" class="w-20 p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                        </td>
-                                        <td class="px-4 py-2 text-red-600 font-bold">{{ item.missing }}</td>
-                                        <td class="px-4 py-2">
-                                            <input type="text" v-model="item.condition_return" placeholder="Good" class="w-full p-1 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Modal footer -->
-            <div class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600 justify-end">
-                <button type="button" @click="closeModal" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">Cancel</button>
-                <button @click="handleSubmit" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    {{ isEditing ? 'Save Changes' : 'Create Event' }}
-                </button>
-            </div>
-        </div>
-      </div>
-    </div>
-=======
       <template #footer>
           <BaseButton variant="secondary" @click="closeModal">Cancel</BaseButton>
           <BaseButton @click="handleSubmit">
@@ -224,7 +199,6 @@
           </BaseButton>
       </template>
     </BaseModal>
->>>>>>> refactor-reusable-components-11476131390176582777
   </div>
 </template>
 
@@ -249,6 +223,7 @@ const availabilityChecked = ref(false);
 
 const form = ref({
   name: '',
+  client_phone: '',
   date: '',
   start_time: '',
   end_time: '',
@@ -305,6 +280,7 @@ const openModal = () => {
   editingId.value = null;
   form.value = {
       name: '',
+      client_phone: '',
       date: new Date().toISOString().split('T')[0],
       start_time: '',
       end_time: '',

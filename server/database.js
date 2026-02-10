@@ -172,7 +172,23 @@ export async function initDb() {
       notes TEXT,
       FOREIGN KEY (loan_id) REFERENCES loans(id)
     );
+
+    CREATE TABLE IF NOT EXISTS inquiries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      phone TEXT NOT NULL,
+      message TEXT,
+      date TEXT DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'new'
+    );
   `);
+
+  try {
+    await db.exec('ALTER TABLE events ADD COLUMN client_phone TEXT');
+    console.log('Added client_phone column to events table');
+  } catch (e) {
+    // Column likely exists
+  }
 
   console.log('Database initialized');
   return db;
