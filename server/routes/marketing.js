@@ -3,6 +3,8 @@ import { getDb } from '../database.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { sendSMS } from '../broadcast/smsSender.js';
 import { getRecipients } from '../broadcast/audienceManager.js';
+import { Inquiry } from '../models/Inquiry.js';
+import { Event } from '../models/Event.js';
 
 const router = express.Router();
 
@@ -11,9 +13,8 @@ router.use(authenticateToken);
 
 // Get all inquiries
 router.get('/inquiries', async (req, res) => {
-  const db = await getDb();
   try {
-    const inquiries = await db.all('SELECT * FROM inquiries ORDER BY date DESC');
+    const inquiries = await Inquiry.query('SELECT * FROM inquiries ORDER BY date DESC');
     res.json(inquiries);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -23,13 +24,9 @@ router.get('/inquiries', async (req, res) => {
 // Create inquiry
 router.post('/inquiries', async (req, res) => {
   const { name, phone, message } = req.body;
-  const db = await getDb();
   try {
-    const result = await db.run(
-      'INSERT INTO inquiries (name, phone, message) VALUES (?, ?, ?)',
-      [name, phone, message]
-    );
-    res.json({ id: result.lastID, name, phone, message });
+    const result = await Inquiry.create({ name, phone, message });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,21 +34,10 @@ router.post('/inquiries', async (req, res) => {
 
 // Send SMS
 router.post('/sms/send', async (req, res) => {
-  const { to, message, audience } = req.body; // to can be array or string (for manual)
-  const db = await getDb();
+  const { to, message, audience } = req.body;
+  const db = await getDb(); // Still needed for getRecipients which expects db instance
   try {
-    // Determine recipients using audience manager
-    // If audience is manual, 'to' is passed. Otherwise 'to' might be ignored or used differently.
-    // The extracted function logic handles this if we pass manual 'to' correctly.
-    // In my extraction, I used (audience, db, manualTo).
-
-    // Logic check: if audience is undefined/null (manual mode likely implies audience='manual' from frontend),
-    // but if frontend just sends 'to', we might need to handle defaults.
-    // Assuming frontend sends audience='manual' when specific numbers are provided.
-
-    // Compatibility: If 'audience' is not provided but 'to' is, treat as manual.
     const effectiveAudience = audience || 'manual';
-
     const recipients = await getRecipients(effectiveAudience, db, to);
     const result = await sendSMS(recipients, message);
 
@@ -63,11 +49,8 @@ router.post('/sms/send', async (req, res) => {
 
 // Run Automated Follow-ups
 router.post('/automations/run', async (req, res) => {
-    const db = await getDb();
     try {
-        // Find inquiries created within last 30 days, message_count < 3, status != 'removed'
-        // SQLite: datetime('now', '-30 days')
-        const inquiries = await db.all(`
+        const inquiries = await Inquiry.query(`
             SELECT * FROM inquiries
             WHERE date >= datetime('now', '-30 days')
             AND message_count < 3
@@ -83,16 +66,25 @@ router.post('/automations/run', async (req, res) => {
                 sentCount++;
 
                 const newCount = inquiry.message_count + 1;
-                const updates = ['message_count = ?', 'last_message_sent = datetime("now")'];
-                const params = [newCount];
+                const updateData = {
+                    message_count: newCount,
+                    // last_message_sent: handled via raw query below because ORM update takes object values, not SQL expressions
+                };
 
+                let status = inquiry.status;
                 if (newCount >= 3) {
-                    updates.push("status = 'removed'");
+                    status = 'removed';
                     removedCount++;
                 }
+                updateData.status = status;
 
-                params.push(inquiry.id);
-                await db.run(`UPDATE inquiries SET ${updates.join(', ')} WHERE id = ?`, params);
+                // We need to set last_message_sent to CURRENT_TIMESTAMP or similar.
+                // Our simple ORM .update() sets values as parameters.
+                // So we'll update status and count first, then use query for timestamp if strict needed,
+                // OR just pass the ISO string from JS.
+                updateData.last_message_sent = new Date().toISOString();
+
+                await Inquiry.update(inquiry.id, updateData);
             }
         }
 
@@ -104,15 +96,12 @@ router.post('/automations/run', async (req, res) => {
 
 // Mock Upcoming Reminders
 router.post('/reminders', async (req, res) => {
-    const db = await getDb();
     try {
-        // Find events for "this Saturday"
-        // For simplicity in this mock, let's just find events in the next 7 days
         const today = new Date();
         const nextWeek = new Date(today);
         nextWeek.setDate(today.getDate() + 7);
 
-        const events = await db.all(
+        const events = await Event.query(
             'SELECT * FROM events WHERE date BETWEEN ? AND ?',
             [today.toISOString().split('T')[0], nextWeek.toISOString().split('T')[0]]
         );

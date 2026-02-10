@@ -1,30 +1,34 @@
 import express from 'express';
 import { getDb } from '../database.js';
 import { sendSMS } from '../broadcast/smsSender.js';
+import { Event } from '../models/Event.js';
+import { InventoryBooking } from '../models/InventoryBooking.js';
 
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  const db = await getDb();
-  const events = await db.all(`
-    SELECT events.*, clients.name as client_name
-    FROM events
-    LEFT JOIN clients ON events.client_id = clients.id
-  `);
-  res.json(events);
+  try {
+    const events = await Event.query(`
+        SELECT events.*, clients.name as client_name
+        FROM events
+        LEFT JOIN clients ON events.client_id = clients.id
+    `);
+    res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.post('/', async (req, res) => {
   const { client_id, name, client_phone, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost, inventory } = req.body;
-  const db = await getDb();
   try {
-    const result = await db.run(
-      `INSERT INTO events (client_id, name, client_phone, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [client_id, name, client_phone, date, start_time, end_time, location, type, status || 'planned', amount_paid || 0, total_cost || 0, transport_cost || 0]
-    );
-
-    const eventId = result.lastID;
+    const event = await Event.create({
+        client_id, name, client_phone, date, start_time, end_time, location, type,
+        status: status || 'planned',
+        amount_paid: amount_paid || 0,
+        total_cost: total_cost || 0,
+        transport_cost: transport_cost || 0
+    });
 
     if (client_phone) {
       await sendSMS(client_phone, `Your event '${name}' has been booked successfully!`);
@@ -32,19 +36,21 @@ router.post('/', async (req, res) => {
 
     // Handle Inventory Bookings
     if (inventory && Array.isArray(inventory) && inventory.length > 0) {
-        const bookingStmt = await db.prepare(
-            `INSERT INTO inventory_bookings (event_id, item_id, quantity, start_time, end_time, status)
-             VALUES (?, ?, ?, ?, ?, ?)`
-        );
         for (const item of inventory) {
             if (item.quantity > 0) {
-                await bookingStmt.run([eventId, item.item_id, item.quantity, start_time, end_time, 'reserved']);
+                await InventoryBooking.create({
+                    event_id: event.id,
+                    item_id: item.item_id,
+                    quantity: item.quantity,
+                    start_time,
+                    end_time,
+                    status: 'reserved'
+                });
             }
         }
-        await bookingStmt.finalize();
     }
 
-    res.json({ id: eventId, ...req.body });
+    res.json(event);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -52,52 +58,44 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   let { status, failure_reason, amount_paid, name, client_phone, location, date, start_time, end_time, type, total_cost, transport_cost } = req.body;
-  const db = await getDb();
-
-  // If status is completing, auto-pay remaining balance
-  if (status === 'completed') {
-      // We need to know the total cost. If provided in update, use it. If not, fetch from DB.
-      // Optimization: Just assume frontend sends current total_cost or we fetch it.
-      // Let's fetch the current event state to be safe if total_cost isn't in body
-      const current = await db.get('SELECT total_cost FROM events WHERE id = ?', req.params.id);
-      const finalTotal = (total_cost !== undefined) ? total_cost : current.total_cost;
-
-      // Set amount_paid to total_cost
-      amount_paid = finalTotal;
-  }
-
-  // Dynamic update query
-  const updates = [];
-  const params = [];
-
-  const fields = { status, failure_reason, amount_paid, name, client_phone, location, date, start_time, end_time, type, total_cost, transport_cost };
-
-  for (const [key, value] of Object.entries(fields)) {
-      if (value !== undefined) {
-          updates.push(`${key} = ?`);
-          params.push(value);
-      }
-  }
-
-  if (updates.length === 0) return res.json({ message: 'No updates' });
-
-  params.push(req.params.id);
 
   try {
-      await db.run(`UPDATE events SET ${updates.join(', ')} WHERE id = ?`, params);
-      res.json({ message: 'Event updated' });
+    // If status is completing, auto-pay remaining balance
+    if (status === 'completed') {
+        const current = await Event.find(req.params.id);
+        const finalTotal = (total_cost !== undefined) ? total_cost : current.total_cost;
+        amount_paid = finalTotal;
+    }
+
+    const fields = { status, failure_reason, amount_paid, name, client_phone, location, date, start_time, end_time, type, total_cost, transport_cost };
+
+    // Filter undefined
+    const dataToUpdate = {};
+    for (const [key, value] of Object.entries(fields)) {
+        if (value !== undefined) {
+            dataToUpdate[key] = value;
+        }
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) return res.json({ message: 'No updates' });
+
+    await Event.update(req.params.id, dataToUpdate);
+    res.json({ message: 'Event updated' });
   } catch (err) {
       res.status(500).json({ error: err.message });
   }
 });
 
 router.get('/:id', async (req, res) => {
-  const db = await getDb();
-  const event = await db.get('SELECT * FROM events WHERE id = ?', req.params.id);
-  if (!event) {
-    return res.status(404).json({ error: 'Event not found' });
+  try {
+    const event = await Event.find(req.params.id);
+    if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+    }
+    res.json(event);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json(event);
 });
 
 export default router;
