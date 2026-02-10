@@ -16,12 +16,8 @@
           <option value="owners_drawings">Owner’s Drawings Book</option>
           <option value="loan_advances">Loan / Advances Book</option>
           <option value="maintenance_log">Maintenance Log</option>
-<<<<<<< HEAD
           <option value="income_expenditure">Income & Expenditure Sheet</option>
-        </select>
-=======
         </BaseSelect>
->>>>>>> refactor-reusable-components-11476131390176582777
       </div>
     </div>
 
@@ -262,9 +258,9 @@
               <td class="px-6 py-4">{{ entry.action }}</td>
               <td class="px-6 py-4">{{ formatCurrency(entry.cost) }}</td>
               <td class="px-6 py-4">
-                 <span :class="statusClass(entry.status)" class="text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                 <BaseBadge :variant="getBadgeVariant(entry.status)">
                   {{ entry.status }}
-                 </span>
+                 </BaseBadge>
               </td>
             </tr>
              <tr v-if="paginatedData.length === 0">
@@ -348,23 +344,8 @@
     </div>
 
     <!-- Pagination Controls (Visible if supported book and more than 0 items) -->
-<<<<<<< HEAD
-    <div v-if="selectedBook !== 'income_expenditure' && filteredData.length > 0" class="flex flex-col items-center mt-4">
-        <span class="text-sm text-gray-700 dark:text-gray-400">
-            Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ Math.min(currentPage * itemsPerPage, filteredData.length) }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ filteredData.length }}</span> Entries
-        </span>
-        <div class="inline-flex mt-2 xs:mt-0">
-            <button @click="prevPage" :disabled="currentPage === 1" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 rounded-l hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
-                Prev
-            </button>
-            <button @click="nextPage" :disabled="currentPage === totalPages" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 border-0 border-l border-blue-700 rounded-r hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
-                Next
-            </button>
-        </div>
-    </div>
-=======
     <Pagination
-        v-if="selectedBook !== 'maintenance_log' && filteredData.length > 0"
+        v-if="selectedBook !== 'income_expenditure' && filteredData.length > 0"
         :currentPage="currentPage"
         :totalPages="totalPages"
         :itemsPerPage="itemsPerPage"
@@ -372,7 +353,6 @@
         @next="nextPage"
         @prev="prevPage"
     />
->>>>>>> refactor-reusable-components-11476131390176582777
 
     <!-- Add Expense Modal -->
     <BaseModal :show="showExpenseModal" title="Add New Expense" @close="showExpenseModal = false" maxWidthClass="max-w-md">
@@ -851,7 +831,6 @@ const sortBy = (key) => {
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
 const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
 
-<<<<<<< HEAD
 const selectedPeriodLabel = computed(() => {
     if (!selectedPeriod.value) return '';
     const [year, month] = selectedPeriod.value.split('-');
@@ -930,30 +909,21 @@ const incomeExpenditureReport = computed(() => {
     };
 });
 
-const statusClass = (status) => {
-=======
 const getBadgeVariant = (status) => {
->>>>>>> refactor-reusable-components-11476131390176582777
     switch(status) {
         case 'Fully Paid':
         case 'Balance Paid':
         case 'Active':
         case 'Repaid':
-<<<<<<< HEAD
-        case 'Fixed':
-            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-        case 'Owing':
-        case 'Overdue':
-        case 'Faulty':
-            return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-        case 'Pending':
-            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-=======
+        case 'Fixed': // Added from HEAD logic
             return 'success';
         case 'Owing':
         case 'Overdue':
+        case 'Faulty': // Added from HEAD logic
             return 'danger';
->>>>>>> refactor-reusable-components-11476131390176582777
+        case 'Pending': // Added from HEAD logic
+        case 'In Progress': // Assuming warning
+            return 'warning';
         default:
             return 'primary';
     }

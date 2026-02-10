@@ -65,20 +65,16 @@ async function seed() {
   }
 
   // Ensure Users
-  const userCount = await db.get('SELECT count(*) as count FROM users');
-  if (userCount.count === 0) {
+  const adminUser = await db.get('SELECT * FROM users WHERE email = ?', 'admin@example.com');
+  if (!adminUser) {
     const passwordHash = bcrypt.hashSync('password123', 10);
     await db.run(`
       INSERT INTO users (email, password_hash, role, full_name) VALUES
-      (?, ?, ?, ?),
-      (?, ?, ?, ?),
       (?, ?, ?, ?)
     `, [
-        'admin@example.com', passwordHash, 'admin', 'System Admin',
-        'staff@example.com', passwordHash, 'staff', 'Staff Member',
-        'client@example.com', passwordHash, 'customer', 'Client User'
+        'admin@example.com', passwordHash, 'admin', 'System Admin'
     ]);
-    console.log('Seeded users');
+    console.log('Seeded admin user');
   }
 
   console.log('Seeding complete');

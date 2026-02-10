@@ -122,15 +122,6 @@
 
         <!-- Tab Content: Movement Log -->
         <div v-if="activeTab === 'movement'">
-<<<<<<< HEAD
-=======
-            <div class="mb-4 flex gap-4 w-full md:w-64">
-                 <BaseSelect v-model="selectedEventId" @change="loadMovementLog">
-                    <option value="">All Events</option>
-                    <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </BaseSelect>
-            </div>
->>>>>>> refactor-reusable-components-11476131390176582777
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
