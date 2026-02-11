@@ -141,6 +141,17 @@ export async function initDb() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS expenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      category TEXT,
+      amount REAL DEFAULT 0,
+      description TEXT,
+      assistant_name TEXT,
+      event_id INTEGER,
+      FOREIGN KEY (event_id) REFERENCES events(id)
+    );
+
     CREATE TABLE IF NOT EXISTS transactions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       date TEXT NOT NULL,
