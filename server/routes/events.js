@@ -46,10 +46,29 @@ router.post('/import-sheet', async (req, res) => {
           const remaining = parseFloat(row[11]) || 0;
           const location = row[12];
           const transport = parseFloat(row[13]) || 0;
+          const wasDone = row[14];
 
           const totalCost = deposit + remaining;
           const isPaid = remaining <= 0;
           const amountPaid = isPaid ? totalCost : deposit;
+
+          // Determine status from 'Was Done' column (Yes/No)
+          let status = 'planned';
+          if (wasDone && wasDone.trim().toLowerCase() === 'yes') {
+              status = 'completed';
+          } else if (isPaid) {
+              // Fallback to paid logic if not explicitly marked done?
+              // The user request implies "Was Done" indicates completion.
+              // If paid but not done, should it be completed? probably not.
+              // However, let's stick to "Was Done" being the primary indicator of completion.
+              // If "Was Done" is empty, default to 'planned' unless we want to keep existing status.
+              // But here we are overwriting or creating.
+              // Let's assume if paid, it might be completed, but "Was Done" overrides.
+              // If "Was Done" is present, use it. If not, use isPaid logic?
+              // The prompt says "indicate that the  event is complete".
+              // So I will rely on "Was Done".
+              status = 'planned';
+          }
 
           // Normalize Phone for matching
           // Remove all non-digits, keep last 9
@@ -70,15 +89,12 @@ router.post('/import-sheet', async (req, res) => {
                   total_cost: totalCost,
                   amount_paid: amountPaid,
                   transport_cost: transport,
-                  location: location || existingEvent.location, // Update location if provided
-                  // We generally don't overwrite name/date if already set, unless we want to enforce sheet as truth.
-                  // Let's enforce sheet as truth for financials.
+                  location: location || existingEvent.location,
+                  status: status // Update status based on sheet
               });
               updatedCount++;
           } else {
               // Create New
-              // Parse Date: "1 Jan" -> Current Year or infer?
-              // Let's assume current year for simplicity as "1 Jan" doesn't have year.
               const currentYear = new Date().getFullYear();
               const dateParts = rawDate.split(' ');
               let formattedDate = new Date().toISOString().split('T')[0]; // fallback
@@ -92,7 +108,6 @@ router.post('/import-sheet', async (req, res) => {
                   };
                   const month = months[monthStr.substring(0, 3)];
                   if (month) {
-                      // Pad day
                       const paddedDay = day.length === 1 ? `0${day}` : day;
                       formattedDate = `${currentYear}-${month}-${paddedDay}`;
                   }
@@ -103,7 +118,7 @@ router.post('/import-sheet', async (req, res) => {
                   client_phone: rawPhone,
                   date: formattedDate,
                   location,
-                  status: isPaid ? 'completed' : 'planned',
+                  status: status,
                   total_cost: totalCost,
                   amount_paid: amountPaid,
                   transport_cost: transport,
