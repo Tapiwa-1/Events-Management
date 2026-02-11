@@ -69,6 +69,21 @@
               <BaseInput v-model="form.location" label="Location" />
           </div>
 
+          <!-- Google Sheet Integration -->
+          <div class="col-span-2 border-t dark:border-gray-600 pt-4 mt-2">
+              <h4 class="font-medium text-gray-900 dark:text-white mb-2">Google Sheet Integration</h4>
+              <div class="flex flex-col md:flex-row gap-2 items-end">
+                  <div class="flex-grow w-full">
+                      <BaseInput v-model="form.google_sheet_url" label="Google Sheet URL" placeholder="https://docs.google.com/spreadsheets/..." />
+                  </div>
+                  <div class="w-full md:w-auto" v-if="isEditing">
+                      <BaseButton type="button" @click="syncSheet" :disabled="isSyncing" customClass="w-full md:w-auto">
+                          {{ isSyncing ? 'Syncing...' : 'Sync from Sheet' }}
+                      </BaseButton>
+                  </div>
+              </div>
+          </div>
+
           <!-- Services -->
           <div class="col-span-2 border-t dark:border-gray-600 pt-4">
               <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select Services</label>
@@ -220,6 +235,7 @@ const showModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
 const availabilityChecked = ref(false);
+const isSyncing = ref(false);
 
 const form = ref({
   name: '',
@@ -233,6 +249,7 @@ const form = ref({
   amount_paid: 0,
   transport_cost: 0,
   failure_reason: '',
+  google_sheet_url: '',
   inventory: []
 });
 
@@ -290,6 +307,7 @@ const openModal = () => {
       amount_paid: 0,
       transport_cost: 0,
       failure_reason: '',
+      google_sheet_url: '',
       inventory: []
   };
   selectedServices.value = { pa: false, photography: false, decor: false };
@@ -326,6 +344,33 @@ const editEvent = async (event) => {
 
 const closeModal = () => {
   showModal.value = false;
+};
+
+const syncSheet = async () => {
+    if (!form.value.google_sheet_url) return alert('Please enter a Google Sheet URL');
+    if (!editingId.value) return;
+
+    isSyncing.value = true;
+    try {
+        // First save the URL
+        await api.put(`/events/${editingId.value}`, { google_sheet_url: form.value.google_sheet_url });
+
+        // Then sync
+        const res = await api.post(`/events/${editingId.value}/sync-sheet`);
+        const updated = res.data;
+
+        // Update form
+        form.value.total_cost = updated.total_cost;
+        form.value.amount_paid = updated.amount_paid;
+        form.value.transport_cost = updated.transport_cost;
+
+        alert('Synced successfully!');
+    } catch (err) {
+        console.error(err);
+        alert('Sync failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+        isSyncing.value = false;
+    }
 };
 
 const checkAvailability = async () => {

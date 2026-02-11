@@ -191,6 +191,13 @@ export async function initDb() {
   }
 
   try {
+    await db.exec('ALTER TABLE events ADD COLUMN google_sheet_url TEXT');
+    console.log('Added google_sheet_url column to events table');
+  } catch (e) {
+    // Column likely exists
+  }
+
+  try {
     await db.exec('ALTER TABLE inquiries ADD COLUMN message_count INTEGER DEFAULT 0');
     await db.exec('ALTER TABLE inquiries ADD COLUMN last_message_sent TEXT');
     console.log('Added message_count and last_message_sent to inquiries table');

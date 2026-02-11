@@ -674,7 +674,8 @@ const cashBookEntries = computed(() => {
     let runningBalance = 0;
 
     events.value.forEach(e => {
-        if (e.amount_paid > 0) {
+        const isFullyPaid = ((e.total_cost || 0) - (e.amount_paid || 0)) <= 0.01;
+        if (e.amount_paid > 0 && isFullyPaid) {
             entries.push({
                 date: e.date,
                 description: `Payment: ${e.name}`,
