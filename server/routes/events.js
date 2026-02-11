@@ -100,62 +100,112 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/:id/sync-sheet', async (req, res) => {
+router.post('/import-sheet', async (req, res) => {
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
   try {
-    const event = await Event.find(req.params.id);
-    if (!event) return res.status(404).json({ error: 'Event not found' });
-    if (!event.google_sheet_url) return res.status(400).json({ error: 'Google Sheet URL not set' });
+      let csvUrl = url;
+      if (csvUrl.includes('/edit')) {
+          csvUrl = csvUrl.replace(/\/edit.*/, '/export?format=csv');
+      }
 
-    // Transform URL to CSV export URL
-    let csvUrl = event.google_sheet_url;
-    if (csvUrl.includes('/edit')) {
-        csvUrl = csvUrl.replace(/\/edit.*/, '/export?format=csv');
-    }
+      const response = await axios.get(csvUrl);
+      const records = parse(response.data, {
+          columns: false,
+          skip_empty_lines: true
+      });
 
-    const response = await axios.get(csvUrl);
-    const records = parse(response.data, {
-        columns: false,
-        skip_empty_lines: true
-    });
+      let createdCount = 0;
+      let updatedCount = 0;
 
-    // Job Section starts at index 7 (Date), 8 (Name), 9 (Phone), 10 (Deposit), 11 (Remaining), 12 (Location), 13 (Transport)
-    const targetPhone = (event.client_phone || '').replace(/\D/g, '').slice(-9);
-    if (!targetPhone) return res.status(400).json({ error: 'Client phone not set on event' });
+      // Skip header rows if any (assuming logic starts reading rows that look like data)
+      // The previous logic targeted specific indices: 7=Date, 8=Name, 9=Phone, 10=Deposit, 11=Remaining, 12=Location, 13=Transport
 
-    let foundRow = null;
-    for (const row of records) {
-        if (row.length < 10) continue;
-        const phoneCell = row[9];
-        if (!phoneCell) continue;
+      for (const row of records) {
+          if (row.length < 10) continue;
 
-        const sheetPhone = phoneCell.replace(/\D/g, '').slice(-9);
-        if (sheetPhone === targetPhone) {
-            foundRow = row;
-            break;
-        }
-    }
+          const rawDate = row[7];
+          const name = row[8];
+          const rawPhone = row[9];
 
-    if (!foundRow) {
-        return res.status(404).json({ error: 'Event not found in sheet (by phone number)' });
-    }
+          // Basic validation to check if this is a data row
+          if (!name || !rawPhone || !rawDate) continue;
+          // Skip header row usually containing "Date", "Name", etc.
+          if (name.toLowerCase() === 'name' || rawPhone.toLowerCase() === 'phone number') continue;
 
-    const deposit = parseFloat(foundRow[10]) || 0;
-    const remaining = parseFloat(foundRow[11]) || 0;
-    const transport = parseFloat(foundRow[13]) || 0;
+          const deposit = parseFloat(row[10]) || 0;
+          const remaining = parseFloat(row[11]) || 0;
+          const location = row[12];
+          const transport = parseFloat(row[13]) || 0;
 
-    const totalCost = deposit + remaining;
-    // Logic: If Remaining > 0, amount_paid = Deposit. If Remaining <= 0, amount_paid = Total (assume fully paid).
-    const isPaid = remaining <= 0;
-    const amountPaid = isPaid ? totalCost : deposit;
+          const totalCost = deposit + remaining;
+          const isPaid = remaining <= 0;
+          const amountPaid = isPaid ? totalCost : deposit;
 
-    await Event.update(event.id, {
-        total_cost: totalCost,
-        amount_paid: amountPaid,
-        transport_cost: transport
-    });
+          // Normalize Phone for matching
+          // Remove all non-digits, keep last 9
+          const cleanPhone = rawPhone.replace(/\D/g, '').slice(-9);
+          if (cleanPhone.length < 5) continue; // Skip invalid phones
 
-    const updatedEvent = await Event.find(event.id);
-    res.json(updatedEvent);
+          // Try to find existing event by matching phone (fuzzy match on last 9 digits)
+          // We can't do SQL 'LIKE' easily with the stripped phone in SQLite without a custom function or retrieving all.
+          // For efficiency, we might retrieve all events and map them, or do a LIKE query if we assume stored format.
+          // Stored phones might be formatted. Let's fetch all events once to minimize DB hits? No, dataset is small.
+          // Let's use a LIKE query on the phone column.
+
+          const events = await Event.query(`SELECT * FROM events WHERE client_phone LIKE '%${cleanPhone}'`);
+          const existingEvent = events.length > 0 ? events[0] : null;
+
+          if (existingEvent) {
+              await Event.update(existingEvent.id, {
+                  total_cost: totalCost,
+                  amount_paid: amountPaid,
+                  transport_cost: transport,
+                  location: location || existingEvent.location, // Update location if provided
+                  // We generally don't overwrite name/date if already set, unless we want to enforce sheet as truth.
+                  // Let's enforce sheet as truth for financials.
+              });
+              updatedCount++;
+          } else {
+              // Create New
+              // Parse Date: "1 Jan" -> Current Year or infer?
+              // Let's assume current year for simplicity as "1 Jan" doesn't have year.
+              const currentYear = new Date().getFullYear();
+              const dateParts = rawDate.split(' ');
+              let formattedDate = new Date().toISOString().split('T')[0]; // fallback
+
+              if (dateParts.length >= 2) {
+                  const day = dateParts[0];
+                  const monthStr = dateParts[1];
+                  const months = {
+                      Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+                      Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+                  };
+                  const month = months[monthStr.substring(0, 3)];
+                  if (month) {
+                      // Pad day
+                      const paddedDay = day.length === 1 ? `0${day}` : day;
+                      formattedDate = `${currentYear}-${month}-${paddedDay}`;
+                  }
+              }
+
+              await Event.create({
+                  name,
+                  client_phone: rawPhone,
+                  date: formattedDate,
+                  location,
+                  status: isPaid ? 'completed' : 'planned',
+                  total_cost: totalCost,
+                  amount_paid: amountPaid,
+                  transport_cost: transport,
+                  type: 'Sheet Import'
+              });
+              createdCount++;
+          }
+      }
+
+      res.json({ message: 'Import complete', created: createdCount, updated: updatedCount });
 
   } catch (err) {
       console.error(err);
