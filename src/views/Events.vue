@@ -2,7 +2,10 @@
   <div>
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold dark:text-white">Events Management</h1>
-      <BaseButton @click="openModal">Create New Event</BaseButton>
+      <div class="flex gap-2">
+          <BaseButton variant="secondary" @click="openImportModal">Import from Sheet</BaseButton>
+          <BaseButton @click="openModal">Create New Event</BaseButton>
+      </div>
     </div>
 
     <!-- Events Table -->
@@ -199,6 +202,22 @@
           </BaseButton>
       </template>
     </BaseModal>
+
+    <!-- Import Modal -->
+    <BaseModal :show="showImportModal" title="Import Events from Google Sheet" @close="closeImportModal" maxWidthClass="max-w-md">
+        <div class="space-y-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Enter the Google Sheet URL (must be public or shared with link). This will create new events or update existing ones based on phone number matching.
+            </p>
+            <BaseInput v-model="importUrl" label="Google Sheet URL" placeholder="https://docs.google.com/spreadsheets/..." />
+            <div class="flex justify-end gap-2">
+                <BaseButton variant="secondary" @click="closeImportModal">Cancel</BaseButton>
+                <BaseButton @click="handleImport" :disabled="isImporting">
+                    {{ isImporting ? 'Importing...' : 'Import Events' }}
+                </BaseButton>
+            </div>
+        </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -220,6 +239,11 @@ const showModal = ref(false);
 const isEditing = ref(false);
 const editingId = ref(null);
 const availabilityChecked = ref(false);
+
+// Import Modal State
+const showImportModal = ref(false);
+const importUrl = ref('');
+const isImporting = ref(false);
 
 const form = ref({
   name: '',
@@ -326,6 +350,33 @@ const editEvent = async (event) => {
 
 const closeModal = () => {
   showModal.value = false;
+};
+
+// Import Logic
+const openImportModal = () => {
+    importUrl.value = '';
+    showImportModal.value = true;
+};
+
+const closeImportModal = () => {
+    showImportModal.value = false;
+};
+
+const handleImport = async () => {
+    if (!importUrl.value) return alert('Please enter a valid URL');
+
+    isImporting.value = true;
+    try {
+        const res = await api.post('/events/import-sheet', { url: importUrl.value });
+        alert(`Import successful! ${res.data.created} created, ${res.data.updated} updated.`);
+        closeImportModal();
+        await loadEvents();
+    } catch (err) {
+        console.error(err);
+        alert('Import failed: ' + (err.response?.data?.error || err.message));
+    } finally {
+        isImporting.value = false;
+    }
 };
 
 const checkAvailability = async () => {
