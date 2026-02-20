@@ -1,7 +1,6 @@
 import express from 'express';
 import axios from 'axios';
 import { parse } from 'csv-parse/sync';
-import { getDb } from '../database.js';
 import { sendSMS } from '../broadcast/smsSender.js';
 import { Event } from '../models/Event.js';
 import { InventoryBooking } from '../models/InventoryBooking.js';
