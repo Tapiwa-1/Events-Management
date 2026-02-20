@@ -1,7 +1,11 @@
 import express from 'express';
+import { authenticateToken } from '../middleware/auth.js';
 import * as inventoryController from '../controllers/inventoryController.js';
 
 const router = express.Router();
+
+// Protect all routes
+router.use(authenticateToken);
 
 // Get inventory with availability check
 router.get('/', inventoryController.getInventory);
