@@ -50,25 +50,25 @@
                 </div>
 
                 <!-- Filters -->
-                <select v-if="activeTab === 'register'" v-model="filterCategory" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <BaseSelect v-if="activeTab === 'register'" v-model="filterCategory" class="w-full md:w-64">
                     <option value="">All Categories</option>
                     <option value="Fixed Asset">Fixed Asset</option>
                     <option value="Operational">Operational</option>
                     <option value="Consumable">Consumable</option>
-                </select>
+                </BaseSelect>
 
-                <select v-if="activeTab === 'movement'" v-model="selectedEventId" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <BaseSelect v-if="activeTab === 'movement'" v-model="selectedEventId" class="w-full md:w-64">
                     <option value="">All Events</option>
                     <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </select>
+                </BaseSelect>
 
-                <select v-if="activeTab === 'maintenance'" v-model="filterStatus" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                <BaseSelect v-if="activeTab === 'maintenance'" v-model="filterStatus" class="w-full md:w-64">
                     <option value="">All Statuses</option>
                     <option value="Pending">Pending</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Fixed">Fixed</option>
                     <option value="Faulty">Faulty</option>
-                </select>
+                </BaseSelect>
             </div>
 
             <!-- Items Per Page -->
@@ -122,15 +122,6 @@
 
         <!-- Tab Content: Movement Log -->
         <div v-if="activeTab === 'movement'">
-<<<<<<< HEAD
-=======
-            <div class="mb-4 flex gap-4 w-full md:w-64">
-                 <BaseSelect v-model="selectedEventId" @change="loadMovementLog">
-                    <option value="">All Events</option>
-                    <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </BaseSelect>
-            </div>
->>>>>>> refactor-reusable-components-11476131390176582777
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
