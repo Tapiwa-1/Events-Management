@@ -1,7 +1,10 @@
 import express from 'express';
+import { authenticateToken } from '../middleware/auth.js';
 import * as businessController from '../controllers/businessController.js';
 
 const router = express.Router();
+
+router.use(authenticateToken);
 
 router.get('/transactions', businessController.getTransactions);
 router.post('/transactions', businessController.createTransaction);
