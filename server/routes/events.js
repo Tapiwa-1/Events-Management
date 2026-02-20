@@ -13,6 +13,17 @@ router.post('/import-sheet', async (req, res) => {
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
   try {
+      // Validate URL to prevent SSRF
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'https:') {
+          return res.status(400).json({ error: 'Invalid URL. Only HTTPS is allowed.' });
+      }
+
+      const allowedHosts = ['docs.google.com', 'drive.google.com'];
+      if (!allowedHosts.includes(parsedUrl.hostname)) {
+          return res.status(400).json({ error: 'Invalid URL. Only Google Sheets (docs.google.com, drive.google.com) are supported.' });
+      }
+
       let csvUrl = url;
       if (csvUrl.includes('/edit')) {
           csvUrl = csvUrl.replace(/\/edit.*/, '/export?format=csv');
