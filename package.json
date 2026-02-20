@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test src/**/*.test.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "esmock": "^2.7.3",
     "vite": "^7.2.4"
   }
 }
