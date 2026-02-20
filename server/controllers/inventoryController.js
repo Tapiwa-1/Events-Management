@@ -25,8 +25,8 @@ export const getInventory = async (req, res) => {
       SELECT SUM(quantity) as booked_qty
       FROM inventory_bookings
       WHERE item_id = ?
-      AND start_time < ?
-      AND datetime(end_time, '+' || ? || ' hours') > ?
+      AND datetime(start_time) < datetime(?)
+      AND datetime(end_time, '+' || ? || ' hours') > datetime(?)
       AND status != 'cancelled'
     `;
 
@@ -75,8 +75,8 @@ export const bookItem = async (req, res) => {
       SELECT SUM(quantity) as booked_qty
       FROM inventory_bookings
       WHERE item_id = ?
-      AND start_time < ?
-      AND datetime(end_time, '+' || ? || ' hours') > ?
+      AND datetime(start_time) < datetime(?)
+      AND datetime(end_time, '+' || ? || ' hours') > datetime(?)
       AND status != 'cancelled'
     `;
   const result = await InventoryBooking.first(query, [item_id, end_time, item.buffer_time_hours, start_time]);
