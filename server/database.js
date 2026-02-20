@@ -1,15 +1,84 @@
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 
-export async function getDb() {
+export async function getDb(dbPath = './database.sqlite') {
   return open({
-    filename: './database.sqlite',
+    filename: dbPath,
     driver: sqlite3.Database
   });
 }
 
-export async function initDb() {
-  const db = await getDb();
+// Helper to check if a column exists
+async function columnExists(db, tableName, columnName) {
+  const columns = await db.all(`PRAGMA table_info(${tableName})`);
+  return columns.some(col => col.name === columnName);
+}
+
+// Define migrations
+const MIGRATIONS = [
+  {
+    name: '001_add_client_phone_to_events',
+    up: async (db) => {
+      if (!await columnExists(db, 'events', 'client_phone')) {
+        await db.exec('ALTER TABLE events ADD COLUMN client_phone TEXT');
+        console.log('Applied migration: 001_add_client_phone_to_events');
+      }
+    }
+  },
+  {
+    name: '002_add_google_sheet_url_to_events',
+    up: async (db) => {
+      if (!await columnExists(db, 'events', 'google_sheet_url')) {
+        await db.exec('ALTER TABLE events ADD COLUMN google_sheet_url TEXT');
+        console.log('Applied migration: 002_add_google_sheet_url_to_events');
+      }
+    }
+  },
+  {
+    name: '003_add_message_tracking_to_inquiries',
+    up: async (db) => {
+      let applied = false;
+      if (!await columnExists(db, 'inquiries', 'message_count')) {
+        await db.exec('ALTER TABLE inquiries ADD COLUMN message_count INTEGER DEFAULT 0');
+        applied = true;
+      }
+      if (!await columnExists(db, 'inquiries', 'last_message_sent')) {
+        await db.exec('ALTER TABLE inquiries ADD COLUMN last_message_sent TEXT');
+        applied = true;
+      }
+      if (applied) {
+        console.log('Applied migration: 003_add_message_tracking_to_inquiries');
+      }
+    }
+  }
+];
+
+async function runMigrations(db) {
+  await db.exec(`CREATE TABLE IF NOT EXISTS migrations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE,
+    applied_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  const applied = await db.all('SELECT name FROM migrations');
+  const appliedNames = new Set(applied.map(m => m.name));
+
+  for (const migration of MIGRATIONS) {
+    if (!appliedNames.has(migration.name)) {
+      console.log(`Running migration: ${migration.name}`);
+      try {
+        await migration.up(db);
+        await db.run('INSERT INTO migrations (name) VALUES (?)', migration.name);
+      } catch (e) {
+        console.error(`Migration ${migration.name} failed:`, e);
+        throw e;
+      }
+    }
+  }
+}
+
+export async function initDb(dbPath = './database.sqlite') {
+  const db = await getDb(dbPath);
   await db.exec(`PRAGMA foreign_keys = ON;`);
 
   await db.exec(`
@@ -194,27 +263,7 @@ export async function initDb() {
     );
   `);
 
-  try {
-    await db.exec('ALTER TABLE events ADD COLUMN client_phone TEXT');
-    console.log('Added client_phone column to events table');
-  } catch (e) {
-    // Column likely exists
-  }
-
-  try {
-    await db.exec('ALTER TABLE events ADD COLUMN google_sheet_url TEXT');
-    console.log('Added google_sheet_url column to events table');
-  } catch (e) {
-    // Column likely exists
-  }
-
-  try {
-    await db.exec('ALTER TABLE inquiries ADD COLUMN message_count INTEGER DEFAULT 0');
-    await db.exec('ALTER TABLE inquiries ADD COLUMN last_message_sent TEXT');
-    console.log('Added message_count and last_message_sent to inquiries table');
-  } catch (e) {
-    // Columns likely exist
-  }
+  await runMigrations(db);
 
   console.log('Database initialized');
   return db;
