@@ -2,9 +2,19 @@ import { getDb } from '../database.js';
 
 export class Model {
   static tableName = '';
+  static columns = null;
 
   static async db() {
     return await getDb();
+  }
+
+  static async getColumns() {
+    if (!this.columns) {
+      const db = await this.db();
+      const rows = await db.all(`PRAGMA table_info("${this.tableName}")`);
+      this.columns = rows.map(r => r.name);
+    }
+    return this.columns;
   }
 
   static async all() {
@@ -19,7 +29,15 @@ export class Model {
 
   static async where(conditions) {
     const db = await this.db();
+    const columns = await this.getColumns();
     const keys = Object.keys(conditions);
+
+    for (const key of keys) {
+      if (!columns.includes(key)) {
+        throw new Error(`Invalid column: ${key}`);
+      }
+    }
+
     const values = Object.values(conditions);
     const whereClause = keys.map(key => `${key} = ?`).join(' AND ');
     return await db.all(`SELECT * FROM ${this.tableName} WHERE ${whereClause}`, values);
@@ -27,7 +45,15 @@ export class Model {
 
   static async create(data) {
     const db = await this.db();
+    const columns = await this.getColumns();
     const keys = Object.keys(data);
+
+    for (const key of keys) {
+      if (!columns.includes(key)) {
+        throw new Error(`Invalid column: ${key}`);
+      }
+    }
+
     const values = Object.values(data);
     const placeholders = keys.map(() => '?').join(', ');
 
@@ -40,7 +66,15 @@ export class Model {
 
   static async update(id, data) {
     const db = await this.db();
+    const columns = await this.getColumns();
     const keys = Object.keys(data);
+
+    for (const key of keys) {
+      if (!columns.includes(key)) {
+        throw new Error(`Invalid column: ${key}`);
+      }
+    }
+
     const values = Object.values(data);
     const setClause = keys.map(key => `${key} = ?`).join(', ');
 
