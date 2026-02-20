@@ -87,10 +87,8 @@
              <div class="mb-4 text-right">
                 <BaseButton @click="openAddInventoryModal">Add Item</BaseButton>
             </div>
-             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
+             <BaseTable>
+                    <template #head>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('name')">Item Name <span v-if="sortKey==='name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('category')">Category <span v-if="sortKey==='category'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('total_quantity')">Qty <span v-if="sortKey==='total_quantity'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
@@ -98,9 +96,8 @@
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('location')">Location <span v-if="sortKey==='location'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('last_checked')">Last Checked <span v-if="sortKey==='last_checked'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    </template>
+                    <template #body>
                         <tr v-for="item in paginatedData" :key="item.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ item.name }}</td>
                             <td class="px-6 py-4">{{ item.category }}</td>
@@ -115,26 +112,14 @@
                         <tr v-if="paginatedData.length === 0">
                             <td colspan="7" class="px-6 py-4 text-center">No inventory items found.</td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
+                    </template>
+            </BaseTable>
         </div>
 
         <!-- Tab Content: Movement Log -->
         <div v-if="activeTab === 'movement'">
-<<<<<<< HEAD
-=======
-            <div class="mb-4 flex gap-4 w-full md:w-64">
-                 <BaseSelect v-model="selectedEventId" @change="loadMovementLog">
-                    <option value="">All Events</option>
-                    <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </BaseSelect>
-            </div>
->>>>>>> refactor-reusable-components-11476131390176582777
-            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
+            <BaseTable>
+                    <template #head>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('event_date')">Date <span v-if="sortKey==='event_date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('event_name')">Event <span v-if="sortKey==='event_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
@@ -143,9 +128,8 @@
                             <th scope="col" class="px-6 py-3">Missing</th>
                             <th scope="col" class="px-6 py-3">Condition</th>
                             <th scope="col" class="px-6 py-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    </template>
+                    <template #body>
                         <tr v-for="log in paginatedData" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4">{{ formatDate(log.event_date) }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ log.event_name }}</td>
@@ -161,9 +145,8 @@
                         <tr v-if="paginatedData.length === 0">
                             <td colspan="8" class="px-6 py-4 text-center">No movement logs found.</td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
+                    </template>
+            </BaseTable>
         </div>
 
         <!-- Tab Content: Maintenance -->
@@ -171,10 +154,8 @@
              <div class="mb-4 text-right">
                 <BaseButton @click="openMaintenanceModal">Log Issue</BaseButton>
             </div>
-             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
+             <BaseTable>
+                    <template #head>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('issue')">Issue <span v-if="sortKey==='issue'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
@@ -182,9 +163,8 @@
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('cost')">Cost ($) <span v-if="sortKey==='cost'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('status')">Status <span v-if="sortKey==='status'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Update</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    </template>
+                    <template #body>
                          <tr v-for="log in paginatedData" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4">{{ formatDate(log.date) }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ log.item_name }}</td>
@@ -203,9 +183,8 @@
                         <tr v-if="paginatedData.length === 0">
                             <td colspan="7" class="px-6 py-4 text-center">No maintenance logs found.</td>
                         </tr>
-                    </tbody>
-                </table>
-             </div>
+                    </template>
+             </BaseTable>
         </div>
 
         <!-- Tab Content: Consumables -->
@@ -213,17 +192,14 @@
              <div class="mb-4 text-right">
                 <BaseButton @click="openConsumableModal">Log Usage</BaseButton>
             </div>
-             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                        <tr>
+             <BaseTable>
+                    <template #head>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('date')">Date <span v-if="sortKey==='date'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3 cursor-pointer hover:text-blue-600" @click="sortBy('item_name')">Item <span v-if="sortKey==='item_name'">{{ sortOrder==='asc'?'↑':'↓'}}</span></th>
                             <th scope="col" class="px-6 py-3">Qty Used</th>
                             <th scope="col" class="px-6 py-3">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                    </template>
+                    <template #body>
                          <tr v-for="log in paginatedData" :key="log.id" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="px-6 py-4">{{ formatDate(log.date) }}</td>
                             <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{ log.item_name }}</td>
@@ -233,9 +209,8 @@
                         <tr v-if="paginatedData.length === 0">
                             <td colspan="4" class="px-6 py-4 text-center">No consumable logs found.</td>
                         </tr>
-                    </tbody>
-                </table>
-             </div>
+                    </template>
+             </BaseTable>
         </div>
 
         <!-- Pagination Controls -->
@@ -397,6 +372,7 @@ import BaseInput from '../components/common/BaseInput.vue';
 import BaseSelect from '../components/common/BaseSelect.vue';
 import BaseModal from '../components/common/BaseModal.vue';
 import BaseBadge from '../components/common/BaseBadge.vue';
+import BaseTable from '../components/common/BaseTable.vue';
 
 const selectedCategory = ref('pa');
 const activeTab = ref('register');
