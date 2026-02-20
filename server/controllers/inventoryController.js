@@ -118,6 +118,45 @@ export const updateBooking = async (req, res) => {
     }
 };
 
+export const updateBookingBulk = async (req, res) => {
+    const { updates } = req.body; // Expecting an array of update objects { id, ...data }
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+        return res.status(400).json({ error: 'No updates provided' });
+    }
+
+    const db = await InventoryBooking.db();
+
+    try {
+        await db.run('BEGIN TRANSACTION');
+
+        const ALLOWED_FIELDS = ['status', 'returned', 'damaged', 'qty_out', 'qty_back', 'missing', 'condition_return'];
+
+        for (const update of updates) {
+            const { id, ...data } = update;
+            if (!id) continue;
+
+            const keys = Object.keys(data).filter(key => ALLOWED_FIELDS.includes(key));
+            const values = keys.map(key => data[key]);
+
+            if (keys.length === 0) continue;
+
+            const setClause = keys.map(key => `${key} = ?`).join(', ');
+            await db.run(
+                `UPDATE inventory_bookings SET ${setClause} WHERE id = ?`,
+                [...values, id]
+            );
+        }
+
+        await db.run('COMMIT');
+        res.json({ success: true, count: updates.length });
+    } catch (err) {
+        await db.run('ROLLBACK');
+        console.error('Bulk update failed:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 export const getMovementLog = async (req, res) => {
     const { event_id } = req.query;
 
