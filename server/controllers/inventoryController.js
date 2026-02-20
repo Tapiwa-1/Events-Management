@@ -20,23 +20,34 @@ export const getInventory = async (req, res) => {
     return res.json(items.map(i => ({ ...i, available_quantity: i.total_quantity })));
   }
 
-  const availabilityPromises = items.map(async (item) => {
+  const itemIds = items.map(i => i.id);
+  const bookingsMap = {};
+
+  if (itemIds.length > 0) {
+    const placeholders = itemIds.map(() => '?').join(',');
     const q = `
-      SELECT SUM(quantity) as booked_qty
-      FROM inventory_bookings
-      WHERE item_id = ?
-      AND start_time < ?
-      AND datetime(end_time, '+' || ? || ' hours') > ?
-      AND status != 'cancelled'
+      SELECT ib.item_id, SUM(ib.quantity) as booked_qty
+      FROM inventory_bookings ib
+      JOIN inventory_items ii ON ib.item_id = ii.id
+      WHERE ib.item_id IN (${placeholders})
+      AND datetime(ib.start_time) < datetime(?)
+      AND datetime(ib.end_time, '+' || ii.buffer_time_hours || ' hours') > datetime(?)
+      AND ib.status != 'cancelled'
+      GROUP BY ib.item_id
     `;
 
-    // Access db directly via model.db() or static query/first
-    const result = await InventoryBooking.first(q, [item.id, end_time, item.buffer_time_hours, start_time]);
-    const bookedQty = result && result.booked_qty ? result.booked_qty : 0;
+    const bookings = await InventoryBooking.query(q, [...itemIds, end_time, start_time]);
+
+    for (const b of bookings) {
+      bookingsMap[b.item_id] = b.booked_qty;
+    }
+  }
+
+  const itemsWithAvailability = items.map(item => {
+    const bookedQty = bookingsMap[item.id] || 0;
     return { ...item, available_quantity: item.total_quantity - bookedQty };
   });
 
-  const itemsWithAvailability = await Promise.all(availabilityPromises);
   res.json(itemsWithAvailability);
 };
 
