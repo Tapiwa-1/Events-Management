@@ -122,15 +122,6 @@
 
         <!-- Tab Content: Movement Log -->
         <div v-if="activeTab === 'movement'">
-<<<<<<< HEAD
-=======
-            <div class="mb-4 flex gap-4 w-full md:w-64">
-                 <BaseSelect v-model="selectedEventId" @change="loadMovementLog">
-                    <option value="">All Events</option>
-                    <option v-for="evt in events" :key="evt.id" :value="evt.id">{{ evt.name }} ({{ formatDate(evt.date) }})</option>
-                </BaseSelect>
-            </div>
->>>>>>> refactor-reusable-components-11476131390176582777
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
                 <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                     <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -482,15 +473,6 @@ const loadInventory = async () => {
 const loadMovementLog = async () => {
     try {
         // We load all logs and filter client side for better UX with search/pagination
-        // OR we can keep backend filtering. For now, let's load all to support generic search easily.
-        // If we strictly want to follow previous pattern:
-        // const params = {};
-        // if (selectedEventId.value) params.event_id = selectedEventId.value;
-        // const res = await api.get('/inventory/movement', { params });
-
-        // But to support search across all fields easily without backend changes, fetching all is easier for now.
-        // Let's keep fetching all for now, or fetch by event if selected.
-        // Actually, if I want to filter by event in the UI (as requested "add filters"), I should probably fetch all.
         const res = await api.get('/inventory/movement');
         movementLogs.value = res.data;
     } catch (err) { console.error(err); }
