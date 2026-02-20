@@ -1,7 +1,10 @@
 import express from 'express';
+import { authenticateToken } from '../middleware/auth.js';
 import * as cakesController from '../controllers/cakesController.js';
 
 const router = express.Router();
+
+router.use(authenticateToken);
 
 router.get('/', cakesController.getOrders);
 
