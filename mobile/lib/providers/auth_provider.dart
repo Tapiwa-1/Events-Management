@@ -3,6 +3,7 @@ import 'package:mobile_app/services/api_service.dart';
 
 class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? _user;
+  String? _token;
   final ApiService _apiService = ApiService();
 
   Map<String, dynamic>? get user => _user;
@@ -10,13 +11,15 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> login(String email, String password) async {
     try {
-      final response = await _apiService.postAction('login', {
+      final response = await _apiService.post('/auth/login', {
         'email': email,
         'password': password,
       });
 
-      if (response['success'] == true) {
+      if (response['token'] != null) {
+        _token = response['token'];
         _user = response['user'];
+        _apiService.setToken(_token);
         notifyListeners();
         return true;
       }
@@ -28,14 +31,11 @@ class AuthProvider with ChangeNotifier {
 
   Future<bool> register(String fullName, String email, String password) async {
     try {
-      final data = {
+      await _apiService.post('/auth/register', {
         'full_name': fullName,
         'email': email,
-        'password': password, // api.php now handles hashing
-        'role': 'customer',
-        'is_active': 1,
-      };
-      await _apiService.post('users', data);
+        'password': password,
+      });
       return true;
     } catch (e) {
       print("Registration error: $e");
@@ -45,6 +45,8 @@ class AuthProvider with ChangeNotifier {
 
   void logout() {
     _user = null;
+    _token = null;
+    _apiService.setToken(null);
     notifyListeners();
   }
 }

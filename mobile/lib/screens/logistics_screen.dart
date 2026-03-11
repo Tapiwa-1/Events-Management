@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile_app/providers/data_provider.dart';
+import 'package:mobile_app/services/api_service.dart';
 
 class LogisticsScreen extends StatefulWidget {
   @override
@@ -19,7 +18,7 @@ class _LogisticsScreenState extends State<LogisticsScreen> {
 
   Future<void> _fetchLogistics() async {
     try {
-      final data = await _apiService.get('inventory_bookings');
+      final data = await _apiService.get('/logistics');
       setState(() => _bookings = data);
     } catch (e) {
       print(e);

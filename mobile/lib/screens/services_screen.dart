@@ -18,7 +18,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
   Future<void> _fetchServices() async {
     try {
-      final data = await _apiService.get('service_bookings');
+      final data = await _apiService.get('/services');
       setState(() => _bookings = data);
     } catch (e) {
       print(e);

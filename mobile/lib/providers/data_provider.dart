@@ -15,8 +15,8 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchDashboardStats() async {
     try {
-      _events = await _apiService.get('events');
-      _inventory = await _apiService.get('inventory_items');
+      _events = await _apiService.get('/events');
+      _inventory = await _apiService.get('/inventory');
       notifyListeners();
     } catch (e) {
       print("Error fetching stats: $e");
@@ -25,7 +25,7 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchEvents() async {
     try {
-      _events = await _apiService.get('events');
+      _events = await _apiService.get('/events');
       notifyListeners();
     } catch (e) {
       print("Error fetching events: $e");
@@ -34,7 +34,7 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchInventory() async {
     try {
-      _inventory = await _apiService.get('inventory_items');
+      _inventory = await _apiService.get('/inventory');
       notifyListeners();
     } catch (e) {
       print("Error fetching inventory: $e");
@@ -43,7 +43,7 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchBusinessData() async {
     try {
-      _transactions = await _apiService.get('transactions');
+      _transactions = await _apiService.get('/business/transactions');
       notifyListeners();
     } catch (e) {
       print("Error fetching business data: $e");
@@ -52,7 +52,7 @@ class DataProvider with ChangeNotifier {
 
   Future<void> fetchMarketingData() async {
     try {
-      _inquiries = await _apiService.get('inquiries');
+      _inquiries = await _apiService.get('/marketing/inquiries');
       notifyListeners();
     } catch (e) {
       print("Error fetching marketing data: $e");

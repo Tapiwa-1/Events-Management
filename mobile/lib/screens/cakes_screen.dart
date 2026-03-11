@@ -18,7 +18,7 @@ class _CakesScreenState extends State<CakesScreen> {
 
   Future<void> _fetchCakes() async {
     try {
-      final data = await _apiService.get('cake_orders');
+      final data = await _apiService.get('/cakes');
       setState(() => _orders = data);
     } catch (e) {
       print(e);
