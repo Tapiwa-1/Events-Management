@@ -37,8 +37,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
           return Card(
             margin: EdgeInsets.only(bottom: 16),
             child: ListTile(
-              title: Text('Photographer ID: \${b['photographer_id']}'),
-              subtitle: Text('Time: \${b['start_time']} - \${b['end_time']}\nPost-Prod: \${b['post_prod_status']}'),
+              title: Text("Photographer ID: \${b['photographer_id']}"),
+              subtitle: Text("Time: \${b['start_time']} - \${b['end_time']}\nPost-Prod: \${b['post_prod_status']}"),
               trailing: Chip(label: Text(b['status'] ?? '')),
             ),
           );
