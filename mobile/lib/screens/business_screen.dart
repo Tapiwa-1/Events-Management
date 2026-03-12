@@ -31,9 +31,9 @@ class _BusinessScreenState extends State<BusinessScreen> {
             margin: EdgeInsets.only(bottom: 16),
             child: ListTile(
               title: Text(tx['description'] ?? ''),
-              subtitle: Text("\${tx['date']} • \${tx['category']}"),
+              subtitle: Text("${tx['date']} • ${tx['category']}"),
               trailing: Text(
-                "\${isIncome ? '+' : '-'}\${tx['amount']}",
+                "${isIncome ? '+' : '-'}${tx['amount']}",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: isIncome ? Colors.green : Colors.red,

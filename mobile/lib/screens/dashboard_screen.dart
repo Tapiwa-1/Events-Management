@@ -51,7 +51,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Welcome back, \${user?['full_name']}", style: TextStyle(fontSize: 18, color: Colors.grey)),
+            Text("Welcome back, ${user?['full_name']}", style: TextStyle(fontSize: 18, color: Colors.grey)),
             SizedBox(height: 24),
             Row(
               children: [

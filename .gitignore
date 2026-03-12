@@ -34,3 +34,7 @@ mobile/android/local.properties
 
 # Mobile app secrets and build
 mobile/lib/secrets.dart
+mobile/build/
+mobile/.dart_tool/
+mobile/.packages
+mobile/pubspec.lock

@@ -37,8 +37,8 @@ class _LogisticsScreenState extends State<LogisticsScreen> {
           return Card(
             margin: EdgeInsets.only(bottom: 16),
             child: ListTile(
-              title: Text("Item ID: \${b['item_id']}"),
-              subtitle: Text("Event ID: \${b['event_id']}\nTime: \${b['start_time']} - \${b['end_time']}"),
+              title: Text("Item ID: ${b['item_id']}"),
+              subtitle: Text("Event ID: ${b['event_id']}\nTime: ${b['start_time']} - ${b['end_time']}"),
               trailing: Chip(label: Text(b['status'] ?? '')),
             ),
           );
