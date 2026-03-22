@@ -4,17 +4,17 @@
 
     <!-- Navigation Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <router-link to="/events" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+        <router-link to="/admin/events" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
             <h5 class="mb-2 text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-500">Events</h5>
             <p class="font-normal text-gray-700 dark:text-gray-400">Manage client events and bookings.</p>
         </router-link>
 
-        <router-link to="/inventory" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+        <router-link to="/admin/inventory" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
             <h5 class="mb-2 text-2xl font-bold tracking-tight text-green-600 dark:text-green-500">Inventory</h5>
             <p class="font-normal text-gray-700 dark:text-gray-400">Check stock availability and make reservations.</p>
         </router-link>
 
-        <router-link v-if="authStore.isStaff" to="/logistics" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
+        <router-link v-if="authStore.isStaff" to="/admin/logistics" class="block max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
             <h5 class="mb-2 text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-500">Logistics</h5>
             <p class="font-normal text-gray-700 dark:text-gray-400">View daily dispatch and pickup lists.</p>
         </router-link>
