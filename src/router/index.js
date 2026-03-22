@@ -30,6 +30,10 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
+  if (to.path === '/') {
+    return next();
+  }
+
   const authStore = useAuthStore();
 
   // Try to restore session if not loaded
