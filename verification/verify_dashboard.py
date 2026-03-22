@@ -36,7 +36,7 @@ def run(playwright):
     page.get_by_role("button", name="Login to your account").click()
 
     print("Waiting for Dashboard...")
-    page.wait_for_url("http://localhost:5173/")
+    page.wait_for_url("http://localhost:5173/dashboard")
 
     # Go to Dashboard (should be there already, but to be safe)
     page.wait_for_timeout(2000)

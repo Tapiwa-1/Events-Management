@@ -4,10 +4,11 @@ import { useAuthStore } from '../stores/auth';
 import DashboardLayout from '../layouts/DashboardLayout.vue';
 
 const routes = [
+  { path: '/', component: () => import('../views/Landing.vue'), meta: { guest: true } },
   { path: '/login', component: () => import('../views/auth/Login.vue'), meta: { guest: true } },
   { path: '/register', component: () => import('../views/auth/Register.vue'), meta: { guest: true } },
   {
-    path: '/',
+    path: '/dashboard',
     component: DashboardLayout,
     meta: { requiresAuth: true },
     children: [
@@ -41,14 +42,14 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (to.meta.guest && authStore.isAuthenticated) {
-    return next('/');
+    return next('/dashboard');
   }
 
   if (to.meta.role) {
       const role = to.meta.role;
       // Simple role check
-      if (role === 'admin' && !authStore.isAdmin) return next('/');
-      if (role === 'staff' && !authStore.isStaff) return next('/');
+      if (role === 'admin' && !authStore.isAdmin) return next('/dashboard');
+      if (role === 'staff' && !authStore.isStaff) return next('/dashboard');
   }
 
   next();
