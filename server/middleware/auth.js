@@ -1,6 +1,17 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_change_in_production';
+let JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL ERROR: JWT_SECRET is not defined. Production environment requires JWT_SECRET to be set.');
+    process.exit(1);
+  } else {
+    JWT_SECRET = crypto.randomBytes(64).toString('hex');
+    console.warn('WARNING: JWT_SECRET is not defined. Using a random temporary secret for development.');
+  }
+}
 
 export const authenticateToken = (req, res, next) => {
   // Check cookie first, then Auth header
