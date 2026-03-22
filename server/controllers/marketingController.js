@@ -47,7 +47,7 @@ export const runAutomations = async (req, res) => {
         let sentCount = 0;
         let removedCount = 0;
 
-        for (const inquiry of inquiries) {
+        await Promise.all(inquiries.map(async (inquiry) => {
             if (inquiry.phone) {
                 await sendSMS(inquiry.phone, `Follow-up ${inquiry.message_count + 1}/3`);
                 sentCount++;
@@ -67,7 +67,7 @@ export const runAutomations = async (req, res) => {
 
                 await Inquiry.update(inquiry.id, updateData);
             }
-        }
+        }));
 
         res.json({ success: true, sent_count: sentCount, removed_count: removedCount });
     } catch (err) {
