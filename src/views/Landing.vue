@@ -39,14 +39,43 @@
       </div>
     </nav>
 
-    <!-- Hero -->
-    <section id="home" class="relative min-h-[85vh] bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1519167758481-83f29c8f7f73?q=80&w=1920&auto=format&fit=crop')">
-      <div class="absolute inset-0 flex flex-col items-center justify-center bg-black/55 px-4 text-center">
+    <!-- Hero with slideshow -->
+    <section id="home" class="relative min-h-[85vh] overflow-hidden">
+      <div class="absolute inset-0">
+        <img
+          v-for="(image, index) in heroSlides"
+          :key="image"
+          :src="image"
+          :alt="`RS Events Hero Slide ${index + 1}`"
+          :class="[
+            'absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-in',
+            index === activeSlide ? 'opacity-100' : 'opacity-0'
+          ]"
+        >
+      </div>
+
+      <div class="absolute inset-0 bg-black/55"></div>
+
+      <div class="relative z-10 flex min-h-[85vh] flex-col items-center justify-center px-4 text-center">
         <h1 class="text-4xl font-bold text-white md:text-6xl">RS Events</h1>
         <p class="mt-4 text-lg text-white md:text-2xl">Your Partner for Sound, Décor, Media &amp; Catering</p>
         <div class="mt-6 flex flex-wrap justify-center gap-4">
           <a href="#services" class="rounded bg-yellow-400 px-6 py-3 text-gray-900 hover:bg-yellow-500">Our Services</a>
           <a href="#contact" class="rounded border border-yellow-400 px-6 py-3 text-yellow-400 hover:bg-yellow-400 hover:text-gray-900">Get a Quote</a>
+        </div>
+
+        <div class="mt-8 flex items-center gap-2">
+          <button
+            v-for="(_, index) in heroSlides"
+            :key="`indicator-${index}`"
+            type="button"
+            :aria-label="`Go to slide ${index + 1}`"
+            @click="activeSlide = index"
+            :class="[
+              'h-2.5 w-2.5 rounded-full transition-all duration-300 ease-in',
+              activeSlide === index ? 'w-7 bg-yellow-400' : 'bg-white/70 hover:bg-white'
+            ]"
+          ></button>
         </div>
       </div>
     </section>
@@ -150,7 +179,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const isMobileMenuOpen = ref(false);
+const activeSlide = ref(0);
+const heroSlides = [
+  'https://images.unsplash.com/photo-1519167758481-83f29c8f7f73?q=80&w=1920&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1505236858219-8359eb29e329?q=80&w=1920&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=1920&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?q=80&w=1920&auto=format&fit=crop'
+];
+
+let slideTimer = null;
+
+onMounted(() => {
+  slideTimer = setInterval(() => {
+    activeSlide.value = (activeSlide.value + 1) % heroSlides.length;
+  }, 4500);
+});
+
+onUnmounted(() => {
+  if (slideTimer) {
+    clearInterval(slideTimer);
+  }
+});
 </script>
