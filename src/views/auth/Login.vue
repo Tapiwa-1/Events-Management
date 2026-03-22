@@ -63,7 +63,7 @@ const router = useRouter();
 const handleLogin = async () => {
     const success = await authStore.login({ email: email.value, password: password.value });
     if (success) {
-        router.push('/');
+        router.push('/dashboard');
     }
 };
 </script>
