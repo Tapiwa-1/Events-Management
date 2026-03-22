@@ -8,7 +8,7 @@ import { InventoryBooking } from '../models/InventoryBooking.js';
 
 const router = express.Router();
 
-router.post('/import-sheet', async (req, res) => {
+router.post('/import-sheet', async (req, res, next) => {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
@@ -131,12 +131,11 @@ router.post('/import-sheet', async (req, res) => {
       res.json({ message: 'Import complete', created: createdCount, updated: updatedCount });
 
   } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: err.message });
+      next(err);
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const events = await Event.query(`
         SELECT events.*, clients.name as client_name
@@ -145,11 +144,11 @@ router.get('/', async (req, res) => {
     `);
     res.json(events);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   const { client_id, name, client_phone, date, start_time, end_time, location, type, status, amount_paid, total_cost, transport_cost, inventory } = req.body;
   try {
     const event = await Event.create({
@@ -182,11 +181,11 @@ router.post('/', async (req, res) => {
 
     res.json(event);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req, res, next) => {
   let { status, failure_reason, amount_paid, name, client_phone, location, date, start_time, end_time, type, total_cost, transport_cost, google_sheet_url } = req.body;
 
   try {
@@ -212,11 +211,11 @@ router.put('/:id', async (req, res) => {
     await Event.update(req.params.id, dataToUpdate);
     res.json({ message: 'Event updated' });
   } catch (err) {
-      res.status(500).json({ error: err.message });
+      next(err);
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const event = await Event.find(req.params.id);
     if (!event) {
@@ -224,7 +223,7 @@ router.get('/:id', async (req, res) => {
     }
     res.json(event);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    next(err);
   }
 });
 
