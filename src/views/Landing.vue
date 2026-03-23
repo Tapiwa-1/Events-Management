@@ -17,6 +17,7 @@
         <ul class="hidden space-x-6 md:flex">
           <li><a href="#about" class="hover:text-yellow-400">About</a></li>
           <li><a href="#services" class="hover:text-yellow-400">Services</a></li>
+          <li><a href="#packages" class="hover:text-yellow-400">Packages</a></li>
           <li><a href="#portfolio" class="hover:text-yellow-400">Portfolio</a></li>
           <li><a href="#updates" class="hover:text-yellow-400">Updates</a></li>
           <li><a href="#contact" class="hover:text-yellow-400">Contact</a></li>
@@ -27,6 +28,7 @@
         <ul class="space-y-3 pt-4">
           <li><a href="#about" class="block hover:text-yellow-400" @click="isMobileMenuOpen = false">About</a></li>
           <li><a href="#services" class="block hover:text-yellow-400" @click="isMobileMenuOpen = false">Services</a></li>
+          <li><a href="#packages" class="block hover:text-yellow-400" @click="isMobileMenuOpen = false">Packages</a></li>
           <li><a href="#portfolio" class="block hover:text-yellow-400" @click="isMobileMenuOpen = false">Portfolio</a></li>
           <li><a href="#updates" class="block hover:text-yellow-400" @click="isMobileMenuOpen = false">Updates</a></li>
           <li><a href="#contact" class="block hover:text-yellow-400" @click="isMobileMenuOpen = false">Contact</a></li>
@@ -110,6 +112,53 @@
           <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
             <h3 class="mb-2 text-xl font-bold">Catering</h3>
             <p>Custom menus, buffet and plated services, beverages, and professional catering staff for exceptional dining.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packages -->
+    <section id="packages" class="bg-gray-100 py-20">
+      <div class="mx-auto max-w-7xl px-4 text-center">
+        <h2 class="mb-4 text-3xl font-bold">Our Packages</h2>
+        <p class="mx-auto mb-12 max-w-3xl text-gray-700">
+          Choose from our ready-made event packages, or let us customize one for your specific needs and budget.
+        </p>
+        <div class="grid gap-8 md:grid-cols-3">
+          <div class="rounded bg-white p-8 text-left shadow transition hover:-translate-y-1 hover:shadow-lg">
+            <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Essential</p>
+            <h3 class="mb-2 text-2xl font-bold">Starter Package</h3>
+            <p class="mb-6 text-gray-700">Perfect for small gatherings, birthdays, and private celebrations.</p>
+            <ul class="space-y-2 text-gray-700">
+              <li>• Basic PA sound setup</li>
+              <li>• Simple décor styling</li>
+              <li>• Event photography highlights</li>
+              <li>• Light catering menu</li>
+            </ul>
+          </div>
+
+          <div class="rounded border-2 border-yellow-400 bg-white p-8 text-left shadow-lg transition hover:-translate-y-1">
+            <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Most Popular</p>
+            <h3 class="mb-2 text-2xl font-bold">Classic Package</h3>
+            <p class="mb-6 text-gray-700">Ideal for weddings and corporate events needing full-service coordination.</p>
+            <ul class="space-y-2 text-gray-700">
+              <li>• Enhanced sound &amp; lighting setup</li>
+              <li>• Premium themed décor</li>
+              <li>• Photo + video coverage</li>
+              <li>• Buffet catering with service team</li>
+            </ul>
+          </div>
+
+          <div class="rounded bg-white p-8 text-left shadow transition hover:-translate-y-1 hover:shadow-lg">
+            <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Luxury</p>
+            <h3 class="mb-2 text-2xl font-bold">Signature Package</h3>
+            <p class="mb-6 text-gray-700">For large, high-impact events with premium production and hospitality.</p>
+            <ul class="space-y-2 text-gray-700">
+              <li>• Full-scale audio, stage &amp; lighting</li>
+              <li>• Bespoke décor and floral design</li>
+              <li>• Full media production + livestream</li>
+              <li>• Premium dining experience</li>
+            </ul>
           </div>
         </div>
       </div>
