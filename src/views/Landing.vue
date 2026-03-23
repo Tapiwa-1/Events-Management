@@ -184,10 +184,10 @@ import { onMounted, onUnmounted, ref } from 'vue';
 const isMobileMenuOpen = ref(false);
 const activeSlide = ref(0);
 const heroSlides = [
-  'https://images.unsplash.com/photo-1519167758481-83f29c8f7f73?q=80&w=1920&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1505236858219-8359eb29e329?q=80&w=1920&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?q=80&w=1920&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?q=80&w=1920&auto=format&fit=crop'
+  '/Img/img1.jpg',
+  '/Img/img2.jpg',
+  '/Img/img3.jpg',
+  '/Img/img4.jpg'
 ];
 
 let slideTimer = null;
