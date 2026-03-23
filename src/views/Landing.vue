@@ -95,22 +95,22 @@
     <!-- Services -->
     <section id="services" class="py-20">
       <div class="mx-auto max-w-7xl px-4 text-center">
-        <h2 class="mb-12 text-3xl font-bold">Our Services</h2>
+        <h2 class="mb-12 text-3xl font-bold">🛠️ Our Services</h2>
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">PA System Hire</h3>
+            <h3 class="mb-2 text-xl font-bold">🔊 PA System Hire</h3>
             <p>Professional audio systems, microphones, mixers, and technical support for flawless sound at every event.</p>
           </div>
           <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">Décor &amp; Styling</h3>
+            <h3 class="mb-2 text-xl font-bold">🎨 Décor &amp; Styling</h3>
             <p>Themed décor, stage design, lighting, floral arrangements, and backdrops that create unforgettable atmospheres.</p>
           </div>
           <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">Media &amp; Production</h3>
+            <h3 class="mb-2 text-xl font-bold">🎥 Media &amp; Production</h3>
             <p>Photography, videography, live streaming, and social media content to capture and share every moment.</p>
           </div>
           <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">Catering</h3>
+            <h3 class="mb-2 text-xl font-bold">🍽️ Catering</h3>
             <p>Custom menus, buffet and plated services, beverages, and professional catering staff for exceptional dining.</p>
           </div>
         </div>
@@ -120,14 +120,14 @@
     <!-- Packages -->
     <section id="packages" class="bg-gray-100 py-20">
       <div class="mx-auto max-w-7xl px-4 text-center">
-        <h2 class="mb-4 text-3xl font-bold">Our Packages</h2>
+        <h2 class="mb-4 text-3xl font-bold">📦 Our Packages</h2>
         <p class="mx-auto mb-12 max-w-3xl text-gray-700">
           Choose from our ready-made event packages, or let us customize one for your specific needs and budget.
         </p>
         <div class="grid gap-8 md:grid-cols-3">
           <div class="rounded bg-white p-8 text-left shadow transition hover:-translate-y-1 hover:shadow-lg">
             <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Essential</p>
-            <h3 class="mb-2 text-2xl font-bold">Starter Package</h3>
+            <h3 class="mb-2 text-2xl font-bold">🌱 Starter Package</h3>
             <p class="mb-6 text-gray-700">Perfect for small gatherings, birthdays, and private celebrations.</p>
             <ul class="space-y-2 text-gray-700">
               <li>• Basic PA sound setup</li>
@@ -139,7 +139,7 @@
 
           <div class="rounded border-2 border-yellow-400 bg-white p-8 text-left shadow-lg transition hover:-translate-y-1">
             <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Most Popular</p>
-            <h3 class="mb-2 text-2xl font-bold">Classic Package</h3>
+            <h3 class="mb-2 text-2xl font-bold">⭐ Classic Package</h3>
             <p class="mb-6 text-gray-700">Ideal for weddings and corporate events needing full-service coordination.</p>
             <ul class="space-y-2 text-gray-700">
               <li>• Enhanced sound &amp; lighting setup</li>
@@ -151,7 +151,7 @@
 
           <div class="rounded bg-white p-8 text-left shadow transition hover:-translate-y-1 hover:shadow-lg">
             <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Luxury</p>
-            <h3 class="mb-2 text-2xl font-bold">Signature Package</h3>
+            <h3 class="mb-2 text-2xl font-bold">👑 Signature Package</h3>
             <p class="mb-6 text-gray-700">For large, high-impact events with premium production and hospitality.</p>
             <ul class="space-y-2 text-gray-700">
               <li>• Full-scale audio, stage &amp; lighting</li>
@@ -167,7 +167,7 @@
     <!-- Portfolio -->
     <section id="portfolio" class="bg-gray-100 py-20">
       <div class="mx-auto max-w-7xl px-4 text-center">
-        <h2 class="mb-12 text-3xl font-bold">Portfolio</h2>
+        <h2 class="mb-12 text-3xl font-bold">🖼️ Portfolio</h2>
         <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200&auto=format&fit=crop" alt="Event 1" class="h-56 w-full rounded object-cover shadow transition hover:scale-105"/>
           <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=1200&auto=format&fit=crop" alt="Event 2" class="h-56 w-full rounded object-cover shadow transition hover:scale-105"/>
@@ -179,7 +179,7 @@
     <!-- Updates / News -->
     <section id="updates" class="py-20">
       <div class="mx-auto max-w-7xl px-4 text-center">
-        <h2 class="mb-12 text-3xl font-bold">Latest Updates</h2>
+        <h2 class="mb-12 text-3xl font-bold">📰 Latest Updates</h2>
         <div class="grid gap-8 md:grid-cols-3">
           <div class="rounded bg-white p-6 text-left shadow transition hover:shadow-lg">
             <h3 class="mb-2 text-xl font-bold">New Event Package Launch</h3>
@@ -203,7 +203,7 @@
     <!-- Contact -->
     <section id="contact" class="bg-gray-100 py-20">
       <div class="mx-auto max-w-4xl px-4 text-center">
-        <h2 class="mb-8 text-3xl font-bold">Contact RS Events</h2>
+        <h2 class="mb-8 text-3xl font-bold">📞 Contact RS Events</h2>
         <p class="mb-8">Planning an event? Reach out to us today!</p>
         <form class="space-y-4 text-left">
           <input type="text" placeholder="Your Name" class="w-full rounded border p-3"/>
