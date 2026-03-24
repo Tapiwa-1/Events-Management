@@ -97,21 +97,16 @@
       <div class="mx-auto max-w-7xl px-4 text-center">
         <h2 class="mb-12 text-3xl font-bold">🛠️ Our Services</h2>
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">🔊 PA System Hire</h3>
-            <p>Professional audio systems, microphones, mixers, and technical support for flawless sound at every event.</p>
-          </div>
-          <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">🎨 Décor &amp; Styling</h3>
-            <p>Themed décor, stage design, lighting, floral arrangements, and backdrops that create unforgettable atmospheres.</p>
-          </div>
-          <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">🎥 Media &amp; Production</h3>
-            <p>Photography, videography, live streaming, and social media content to capture and share every moment.</p>
-          </div>
-          <div class="rounded bg-white p-6 shadow transition hover:shadow-lg">
-            <h3 class="mb-2 text-xl font-bold">🍽️ Catering</h3>
-            <p>Custom menus, buffet and plated services, beverages, and professional catering staff for exceptional dining.</p>
+          <div
+            v-for="service in services"
+            :key="service.title"
+            class="overflow-hidden rounded bg-white shadow transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <img :src="service.image" :alt="service.title" class="h-40 w-full object-cover" />
+            <div class="p-6 text-left">
+              <h3 class="mb-2 text-xl font-bold">{{ service.title }}</h3>
+              <p class="text-gray-700">{{ service.description }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -238,6 +233,29 @@ const heroSlides = [
   '/Img/img2.jpg',
   '/Img/img3.jpg',
   '/Img/img4.jpg'
+];
+
+const services = [
+  {
+    title: '🔊 PA System Hire',
+    image: '/Img/img1.jpg',
+    description: 'Crystal-clear sound systems, microphones, mixers, and expert setup for ceremonies, receptions, and corporate events.',
+  },
+  {
+    title: '🎨 Décor & Styling',
+    image: '/Img/img2.jpg',
+    description: 'Elegant themed styling, stage décor, centerpieces, backdrops, and lighting design tailored to your event vision.',
+  },
+  {
+    title: '🎥 Media & Production',
+    image: '/Img/img3.jpg',
+    description: 'Professional photography, videography, highlight reels, and content production to preserve every key moment.',
+  },
+  {
+    title: '🍽️ Catering',
+    image: '/Img/img4.jpg',
+    description: 'Delicious menu options, buffet or plated service, and attentive staff to give your guests a memorable dining experience.',
+  },
 ];
 
 let slideTimer = null;
