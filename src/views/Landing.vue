@@ -59,10 +59,11 @@
       <div class="absolute inset-0 bg-black/55"></div>
 
       <div class="relative z-10 flex min-h-[85vh] flex-col items-center justify-center px-4 text-center">
-        <h1 class="text-4xl font-bold text-white md:text-6xl">RS Events</h1>
-        <p class="mt-4 text-lg text-white md:text-2xl">Your Partner for Sound, Décor, Media &amp; Catering</p>
+        <h1 class="text-4xl font-extrabold tracking-wide text-white md:text-6xl">RS Events</h1>
+        <p class="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-yellow-300">Zimbabwe's trusted event partner</p>
+        <p class="mt-4 text-lg text-white md:text-2xl">World-class event infrastructure, décor, media production, and catering for celebrations of every size.</p>
         <div class="mt-6 flex flex-wrap justify-center gap-4">
-          <a href="#services" class="rounded bg-yellow-400 px-6 py-3 text-gray-900 hover:bg-yellow-500">Our Services</a>
+          <a href="#services" class="rounded bg-yellow-400 px-6 py-3 text-gray-900 hover:bg-yellow-500">Explore Our Services</a>
           <a href="#contact" class="rounded border border-yellow-400 px-6 py-3 text-yellow-400 hover:bg-yellow-400 hover:text-gray-900">Get a Quote</a>
         </div>
 
@@ -95,7 +96,9 @@
     <!-- Services -->
     <section id="services" class="py-20">
       <div class="mx-auto max-w-7xl px-4 text-center">
-        <h2 class="mb-12 text-3xl font-bold">🛠️ Our Services</h2>
+        <p class="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-yellow-600">Explore Our Services</p>
+        <h2 class="mb-4 text-3xl font-bold">🛠️ Event Solutions Built For Every Occasion</h2>
+        <p class="mx-auto mb-12 max-w-3xl text-gray-700">From intimate roora ceremonies to large weddings and corporate functions, we deliver dependable equipment, creative styling, and professional execution.</p>
         <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div
             v-for="service in services"
@@ -106,8 +109,28 @@
             <div class="p-6 text-left">
               <h3 class="mb-2 text-xl font-bold">{{ service.title }}</h3>
               <p class="text-gray-700">{{ service.description }}</p>
+              <a href="#contact" class="mt-4 inline-block text-sm font-semibold text-yellow-700 hover:text-yellow-800">Learn More →</a>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience Highlight -->
+    <section class="bg-white py-16">
+      <div class="mx-auto grid max-w-7xl gap-10 px-4 md:grid-cols-2 md:items-center">
+        <div>
+          <p class="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-yellow-600">Why choose RS Events</p>
+          <h2 class="mb-4 text-3xl font-bold">Passionately creating memorable events across Zimbabwe</h2>
+          <p class="mb-4 text-gray-700">
+            We combine professional planning, reliable event infrastructure, and a can-do team to make every event smooth, elegant, and unforgettable.
+          </p>
+          <p class="text-gray-700">
+            Whether it's a private function, roora ceremony, wedding, or corporate activation, RS Events helps bring your vision to life with confidence.
+          </p>
+        </div>
+        <div class="overflow-hidden rounded-xl shadow-lg">
+          <img src="/Img/img2.jpg" alt="RS Events setup showcase" class="h-full w-full object-cover" />
         </div>
       </div>
     </section>
