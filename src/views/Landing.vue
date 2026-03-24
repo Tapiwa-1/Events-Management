@@ -122,42 +122,29 @@
       <div class="mx-auto max-w-7xl px-4 text-center">
         <h2 class="mb-4 text-3xl font-bold">📦 Our Packages</h2>
         <p class="mx-auto mb-12 max-w-3xl text-gray-700">
-          Pricing below is managed by our admin team and updates automatically.
+          Each package total is calculated dynamically from PA + Décor + Media + Catering (per plate × people).
         </p>
 
         <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4 text-left">
-          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
-            <h3 class="mb-4 text-xl font-bold">🔊 PA System</h3>
-            <ul class="space-y-2 text-gray-700">
-              <li>Less than 100 people: <span class="font-semibold">{{ formatCurrency(packagePricing.pa_under_100) }}</span></li>
-              <li>Less than 200 people: <span class="font-semibold">{{ formatCurrency(packagePricing.pa_under_200) }}</span></li>
-              <li>Less than 350 people: <span class="font-semibold">{{ formatCurrency(packagePricing.pa_under_350) }}</span></li>
-            </ul>
-          </div>
+          <div
+            v-for="pkg in landingPackages"
+            :key="pkg.name"
+            class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+          >
+            <h3 class="mb-2 text-xl font-bold">{{ pkg.name }}</h3>
+            <p class="mb-4 text-sm text-gray-600">{{ pkg.people }} people</p>
 
-          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
-            <h3 class="mb-4 text-xl font-bold">🎨 Décor</h3>
-            <ul class="space-y-2 text-gray-700">
-              <li>20 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_20) }}</span></li>
-              <li>30 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_30) }}</span></li>
-              <li>40 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_40) }}</span></li>
-              <li>50 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_50) }}</span></li>
+            <ul class="space-y-2 text-gray-700 text-sm">
+              <li>PA System: <span class="font-semibold">{{ formatCurrency(pkg.pa) }}</span></li>
+              <li>Décor: <span class="font-semibold">{{ formatCurrency(pkg.decor) }}</span></li>
+              <li>Media: <span class="font-semibold">{{ formatCurrency(pkg.media) }}</span></li>
+              <li>Catering: <span class="font-semibold">{{ formatCurrency(pkg.catering) }}</span></li>
             </ul>
-          </div>
 
-          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
-            <h3 class="mb-4 text-xl font-bold">🎥 Media</h3>
-            <p class="mb-2 font-semibold text-gray-800">Roora</p>
-            <ul class="space-y-2 text-gray-700">
-              <li>Still Pictures: <span class="font-semibold">{{ formatCurrency(packagePricing.media_roora_still) }}</span></li>
-              <li>Picture + Reel Video: <span class="font-semibold">{{ formatCurrency(packagePricing.media_roora_reel) }}</span></li>
-            </ul>
-            <p class="mt-4 text-gray-700"><span class="font-semibold">Wedding:</span> {{ packagePricing.media_wedding_note }}</p>
-          </div>
-
-          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
-            <h3 class="mb-4 text-xl font-bold">🍽️ Catering</h3>
-            <p class="text-gray-700">Per plate: <span class="font-semibold">{{ formatCurrency(packagePricing.catering_per_plate) }}</span></p>
+            <div class="mt-4 border-t pt-3">
+              <p class="text-lg font-bold text-gray-900">Total: {{ formatCurrency(pkg.total) }}</p>
+              <p v-if="pkg.mediaNote" class="mt-1 text-xs text-gray-500">{{ pkg.mediaNote }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -227,7 +214,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import api from '../api';
 
 const isMobileMenuOpen = ref(false);
@@ -266,6 +253,38 @@ const loadPackagePricing = async () => {
 const formatCurrency = (amount) => {
   return `$${Number(amount || 0).toFixed(2)}`;
 };
+
+const getPaPriceForPeople = (people) => {
+  if (people < 100) return Number(packagePricing.value.pa_under_100 || 0);
+  if (people < 200) return Number(packagePricing.value.pa_under_200 || 0);
+  return Number(packagePricing.value.pa_under_350 || 0);
+};
+
+const getDecorPriceForPeople = (people) => {
+  if (people <= 20) return Number(packagePricing.value.decor_20 || 0);
+  if (people <= 30) return Number(packagePricing.value.decor_30 || 0);
+  if (people <= 40) return Number(packagePricing.value.decor_40 || 0);
+  return Number(packagePricing.value.decor_50 || 0);
+};
+
+const buildPackage = (name, people, mediaType = 'reel', mediaNote = '') => {
+  const pa = getPaPriceForPeople(people);
+  const decor = getDecorPriceForPeople(people);
+  const media = mediaType === 'still'
+    ? Number(packagePricing.value.media_roora_still || 0)
+    : Number(packagePricing.value.media_roora_reel || 0);
+  const catering = Number(packagePricing.value.catering_per_plate || 0) * people;
+  const total = pa + decor + media + catering;
+
+  return { name, people, pa, decor, media, catering, total, mediaNote };
+};
+
+const landingPackages = computed(() => [
+  buildPackage('Basic Roora Package', 20, 'still'),
+  buildPackage('Roora Plus Package', 40, 'reel'),
+  buildPackage('Roora Premium', 50, 'reel'),
+  buildPackage('RooraWedding', 150, 'reel', `Wedding media: ${packagePricing.value.media_wedding_note}`),
+]);
 
 onMounted(() => {
   loadPackagePricing();
