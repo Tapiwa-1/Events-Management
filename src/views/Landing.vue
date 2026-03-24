@@ -205,6 +205,43 @@
       </div>
     </section>
 
+    <!-- WhatsApp Chatbot Simulation -->
+    <section id="chatbot" class="bg-gray-900 py-20 text-white">
+      <div class="mx-auto max-w-5xl px-4">
+        <p class="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-green-400">WhatsApp Assistant Demo</p>
+        <h2 class="mb-4 text-3xl font-bold">Simulate Chatbot Pricing Replies</h2>
+        <p class="mb-8 text-gray-300">Use command-style inputs just like chatting with an assistant. Start with <span class="font-semibold text-green-300">people 120</span>, then ask for <span class="font-semibold text-green-300">decor</span>, <span class="font-semibold text-green-300">pa</span>, <span class="font-semibold text-green-300">media still</span>, or <span class="font-semibold text-green-300">catering</span>.</p>
+
+        <div class="rounded-xl border border-gray-700 bg-black/60 p-4 shadow-xl">
+          <div class="mb-3 flex items-center gap-2 border-b border-gray-700 pb-3 text-sm text-gray-400">
+            <span class="inline-block h-3 w-3 rounded-full bg-red-400"></span>
+            <span class="inline-block h-3 w-3 rounded-full bg-yellow-400"></span>
+            <span class="inline-block h-3 w-3 rounded-full bg-green-400"></span>
+            <span class="ml-2">whatsapp_bot.cmd</span>
+          </div>
+
+          <div class="mb-4 max-h-80 space-y-2 overflow-y-auto pr-2">
+            <p v-for="(line, idx) in botMessages" :key="idx" class="font-mono text-sm" :class="line.role === 'bot' ? 'text-green-300' : 'text-blue-300'">
+              <span>{{ line.role === 'bot' ? 'bot>' : 'you>' }}</span>
+              {{ line.text }}
+            </p>
+          </div>
+
+          <form class="flex flex-col gap-3 sm:flex-row" @submit.prevent="runBotCommand">
+            <input
+              v-model="botInput"
+              type="text"
+              placeholder="Type command... e.g. people 80"
+              class="w-full rounded border border-gray-600 bg-gray-900 px-4 py-2 text-sm text-white focus:border-green-400 focus:outline-none"
+            />
+            <button type="submit" class="rounded bg-green-500 px-5 py-2 text-sm font-semibold text-gray-900 hover:bg-green-400">
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <!-- Contact -->
     <section id="contact" class="bg-gray-100 py-20">
       <div class="mx-auto max-w-4xl px-4 text-center">
@@ -280,6 +317,66 @@ const services = [
     description: 'Delicious menu options, buffet or plated service, and attentive staff to give your guests a memorable dining experience.',
   },
 ];
+
+const botInput = ref('');
+const selectedPeople = ref(100);
+const botMessages = ref([
+  { role: 'bot', text: 'Hello 👋 Welcome to RS Events WhatsApp assistant.' },
+  { role: 'bot', text: 'Please set number of people: people <number>' },
+  { role: 'bot', text: 'Then ask: decor | pa | media | media still | media reel | catering | quote | help' },
+]);
+
+const getMediaPrice = (option = 'reel') => {
+  return option === 'still'
+    ? Number(packagePricing.value.media_roora_still || 0)
+    : Number(packagePricing.value.media_roora_reel || 0);
+};
+
+const runBotCommand = () => {
+  const raw = botInput.value.trim();
+  if (!raw) return;
+
+  botMessages.value.push({ role: 'user', text: raw });
+  const cmd = raw.toLowerCase();
+
+  if (cmd === 'help') {
+    botMessages.value.push({ role: 'bot', text: 'Commands: people <n>, decor, pa, media, media still, media reel, catering, quote' });
+  } else if (cmd.startsWith('people ')) {
+    const value = Number(cmd.replace('people ', '').trim());
+    if (!Number.isFinite(value) || value <= 0) {
+      botMessages.value.push({ role: 'bot', text: 'Please provide a valid people count. Example: people 120' });
+    } else {
+      selectedPeople.value = value;
+      botMessages.value.push({ role: 'bot', text: `Great! I will now quote for ${value} people.` });
+    }
+  } else if (cmd === 'decor') {
+    const decorPrice = getDecorPriceForPeople(selectedPeople.value);
+    botMessages.value.push({ role: 'bot', text: `Décor for ${selectedPeople.value} people is ${formatCurrency(decorPrice)}.` });
+  } else if (cmd === 'pa' || cmd === 'pa system and dj') {
+    const paPrice = getPaPriceForPeople(selectedPeople.value);
+    botMessages.value.push({ role: 'bot', text: `PA System & DJ for ${selectedPeople.value} people is ${formatCurrency(paPrice)}.` });
+  } else if (cmd === 'media') {
+    botMessages.value.push({ role: 'bot', text: `Media options: still pictures ${formatCurrency(getMediaPrice('still'))}, pictures + reel ${formatCurrency(getMediaPrice('reel'))}.` });
+  } else if (cmd === 'media still' || cmd === 'still pictures' || cmd === '3.1') {
+    botMessages.value.push({ role: 'bot', text: `Still pictures package is ${formatCurrency(getMediaPrice('still'))}.` });
+  } else if (cmd === 'media reel' || cmd === 'pictures and reel video' || cmd === '3.2') {
+    botMessages.value.push({ role: 'bot', text: `Pictures + reel video package is ${formatCurrency(getMediaPrice('reel'))}.` });
+  } else if (cmd === 'catering') {
+    const total = Number(packagePricing.value.catering_per_plate || 0) * selectedPeople.value;
+    botMessages.value.push({ role: 'bot', text: `Catering at ${formatCurrency(packagePricing.value.catering_per_plate)} per plate for ${selectedPeople.value} people is ${formatCurrency(total)}.` });
+  } else if (cmd === 'quote') {
+    const pa = getPaPriceForPeople(selectedPeople.value);
+    const decor = getDecorPriceForPeople(selectedPeople.value);
+    const media = getMediaPrice('reel');
+    const catering = Number(packagePricing.value.catering_per_plate || 0) * selectedPeople.value;
+    const total = pa + decor + media + catering;
+    botMessages.value.push({ role: 'bot', text: `Quote (${selectedPeople.value} people) -> Decor ${formatCurrency(decor)}, PA+DJ ${formatCurrency(pa)}, Media (reel) ${formatCurrency(media)}, Catering ${formatCurrency(catering)}. TOTAL ${formatCurrency(total)}.` });
+  } else {
+    botMessages.value.push({ role: 'bot', text: 'Sorry, command not recognized. Type help for options.' });
+  }
+
+  botInput.value = '';
+};
 
 let slideTimer = null;
 
