@@ -122,43 +122,42 @@
       <div class="mx-auto max-w-7xl px-4 text-center">
         <h2 class="mb-4 text-3xl font-bold">📦 Our Packages</h2>
         <p class="mx-auto mb-12 max-w-3xl text-gray-700">
-          Choose from our ready-made event packages, or let us customize one for your specific needs and budget.
+          Pricing below is managed by our admin team and updates automatically.
         </p>
-        <div class="grid gap-8 md:grid-cols-3">
-          <div class="rounded bg-white p-8 text-left shadow transition hover:-translate-y-1 hover:shadow-lg">
-            <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Essential</p>
-            <h3 class="mb-2 text-2xl font-bold">🌱 Starter Package</h3>
-            <p class="mb-6 text-gray-700">Perfect for small gatherings, birthdays, and private celebrations.</p>
+
+        <div class="grid gap-8 md:grid-cols-2 xl:grid-cols-4 text-left">
+          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
+            <h3 class="mb-4 text-xl font-bold">🔊 PA System</h3>
             <ul class="space-y-2 text-gray-700">
-              <li>• Basic PA sound setup</li>
-              <li>• Simple décor styling</li>
-              <li>• Event photography highlights</li>
-              <li>• Light catering menu</li>
+              <li>Less than 100 people: <span class="font-semibold">{{ formatCurrency(packagePricing.pa_under_100) }}</span></li>
+              <li>Less than 200 people: <span class="font-semibold">{{ formatCurrency(packagePricing.pa_under_200) }}</span></li>
+              <li>Less than 350 people: <span class="font-semibold">{{ formatCurrency(packagePricing.pa_under_350) }}</span></li>
             </ul>
           </div>
 
-          <div class="rounded border-2 border-yellow-400 bg-white p-8 text-left shadow-lg transition hover:-translate-y-1">
-            <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Most Popular</p>
-            <h3 class="mb-2 text-2xl font-bold">⭐ Classic Package</h3>
-            <p class="mb-6 text-gray-700">Ideal for weddings and corporate events needing full-service coordination.</p>
+          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
+            <h3 class="mb-4 text-xl font-bold">🎨 Décor</h3>
             <ul class="space-y-2 text-gray-700">
-              <li>• Enhanced sound &amp; lighting setup</li>
-              <li>• Premium themed décor</li>
-              <li>• Photo + video coverage</li>
-              <li>• Buffet catering with service team</li>
+              <li>20 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_20) }}</span></li>
+              <li>30 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_30) }}</span></li>
+              <li>40 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_40) }}</span></li>
+              <li>50 people: <span class="font-semibold">{{ formatCurrency(packagePricing.decor_50) }}</span></li>
             </ul>
           </div>
 
-          <div class="rounded bg-white p-8 text-left shadow transition hover:-translate-y-1 hover:shadow-lg">
-            <p class="mb-2 text-sm font-semibold uppercase tracking-wide text-yellow-600">Luxury</p>
-            <h3 class="mb-2 text-2xl font-bold">👑 Signature Package</h3>
-            <p class="mb-6 text-gray-700">For large, high-impact events with premium production and hospitality.</p>
+          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
+            <h3 class="mb-4 text-xl font-bold">🎥 Media</h3>
+            <p class="mb-2 font-semibold text-gray-800">Roora</p>
             <ul class="space-y-2 text-gray-700">
-              <li>• Full-scale audio, stage &amp; lighting</li>
-              <li>• Bespoke décor and floral design</li>
-              <li>• Full media production + livestream</li>
-              <li>• Premium dining experience</li>
+              <li>Still Pictures: <span class="font-semibold">{{ formatCurrency(packagePricing.media_roora_still) }}</span></li>
+              <li>Picture + Reel Video: <span class="font-semibold">{{ formatCurrency(packagePricing.media_roora_reel) }}</span></li>
             </ul>
+            <p class="mt-4 text-gray-700"><span class="font-semibold">Wedding:</span> {{ packagePricing.media_wedding_note }}</p>
+          </div>
+
+          <div class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg">
+            <h3 class="mb-4 text-xl font-bold">🍽️ Catering</h3>
+            <p class="text-gray-700">Per plate: <span class="font-semibold">{{ formatCurrency(packagePricing.catering_per_plate) }}</span></p>
           </div>
         </div>
       </div>
@@ -229,9 +228,23 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
+import api from '../api';
 
 const isMobileMenuOpen = ref(false);
 const activeSlide = ref(0);
+const packagePricing = ref({
+  pa_under_100: 130,
+  pa_under_200: 200,
+  pa_under_350: 250,
+  decor_20: 180,
+  decor_30: 220,
+  decor_40: 280,
+  decor_50: 300,
+  media_roora_still: 120,
+  media_roora_reel: 180,
+  media_wedding_note: 'Coming soon',
+  catering_per_plate: 2.5,
+});
 const heroSlides = [
   '/Img/img1.jpg',
   '/Img/img2.jpg',
@@ -241,7 +254,22 @@ const heroSlides = [
 
 let slideTimer = null;
 
+const loadPackagePricing = async () => {
+  try {
+    const { data } = await api.get('/packages/public');
+    packagePricing.value = { ...packagePricing.value, ...data };
+  } catch (err) {
+    console.error('Failed to load package pricing', err);
+  }
+};
+
+const formatCurrency = (amount) => {
+  return `$${Number(amount || 0).toFixed(2)}`;
+};
+
 onMounted(() => {
+  loadPackagePricing();
+
   slideTimer = setInterval(() => {
     activeSlide.value = (activeSlide.value + 1) % heroSlides.length;
   }, 4500);

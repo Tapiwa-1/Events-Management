@@ -11,6 +11,7 @@ import cakesRouter from './routes/cakes.js';
 import logisticsRouter from './routes/logistics.js';
 import businessRouter from './routes/business.js';
 import marketingRouter from './routes/marketing.js';
+import packagesRouter from './routes/packages.js';
 
 const app = express();
 const port = 3000;
@@ -36,6 +37,7 @@ app.use('/api/cakes', cakesRouter);
 app.use('/api/logistics', logisticsRouter);
 app.use('/api/business', businessRouter);
 app.use('/api/marketing', marketingRouter);
+app.use('/api/packages', packagesRouter);
 
 // Initialize DB before starting server
 initDb().then(() => {

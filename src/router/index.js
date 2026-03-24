@@ -17,6 +17,7 @@ const routes = [
       { path: 'inventory', component: () => import('../views/Inventory.vue') },
       { path: 'business', component: () => import('../views/BusinessManagement.vue') },
       { path: 'marketing', component: () => import('../views/Marketing.vue') },
+      { path: 'packages', component: () => import('../views/PackagesManagement.vue'), meta: { role: 'admin' } },
       { path: 'logistics', component: () => import('../views/Logistics.vue'), meta: { role: 'staff' } },
       { path: 'profile', component: () => import('../views/Profile.vue') },
       { path: 'logs', component: () => import('../views/admin/AuditLogs.vue'), meta: { role: 'admin' } },

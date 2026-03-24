@@ -86,6 +86,17 @@
                 </NavLink>
             </li>
             <li v-if="authStore.isAdmin">
+                <NavLink to="/admin/packages">
+                    <template #icon>
+                        <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 3a2 2 0 0 0-2 2v2h16V5a2 2 0 0 0-2-2H4Z"/><path d="M18 9H2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm-9 2h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2Z"/>
+                        </svg>
+                    </template>
+                    Packages
+                </NavLink>
+            </li>
+
+            <li v-if="authStore.isAdmin">
                  <NavLink to="/admin/logs">
                     <template #icon>
                         <svg class="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 20">
