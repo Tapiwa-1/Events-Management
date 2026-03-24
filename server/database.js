@@ -184,6 +184,21 @@ export async function initDb() {
       FOREIGN KEY (loan_id) REFERENCES loans(id)
     );
 
+
+    CREATE TABLE IF NOT EXISTS package_pricing (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      pa_under_100 REAL DEFAULT 130,
+      pa_under_200 REAL DEFAULT 200,
+      pa_under_350 REAL DEFAULT 250,
+      decor_20 REAL DEFAULT 180,
+      decor_30 REAL DEFAULT 220,
+      decor_40 REAL DEFAULT 280,
+      decor_50 REAL DEFAULT 300,
+      media_roora_still REAL DEFAULT 120,
+      media_roora_reel REAL DEFAULT 180,
+      media_wedding_note TEXT DEFAULT 'Coming soon',
+      catering_per_plate REAL DEFAULT 2.5
+    );
     CREATE TABLE IF NOT EXISTS inquiries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
@@ -214,6 +229,19 @@ export async function initDb() {
     console.log('Added message_count and last_message_sent to inquiries table');
   } catch (e) {
     // Columns likely exist
+  }
+
+
+  const existingPackageConfig = await db.get('SELECT id FROM package_pricing LIMIT 1');
+  if (!existingPackageConfig) {
+    await db.run(`
+      INSERT INTO package_pricing (
+        pa_under_100, pa_under_200, pa_under_350,
+        decor_20, decor_30, decor_40, decor_50,
+        media_roora_still, media_roora_reel, media_wedding_note,
+        catering_per_plate
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [130, 200, 250, 180, 220, 280, 300, 120, 180, 'Coming soon', 2.5]);
   }
 
   console.log('Database initialized');
