@@ -129,10 +129,11 @@
           <div
             v-for="pkg in landingPackages"
             :key="pkg.name"
-            class="rounded bg-white p-6 shadow transition hover:-translate-y-1 hover:shadow-lg"
+            class="rounded-xl border p-6 shadow transition hover:-translate-y-1 hover:shadow-lg" :class="pkg.cardClass"
           >
-            <h3 class="mb-2 text-xl font-bold">{{ pkg.name }}</h3>
-            <p class="mb-4 text-sm text-gray-600">{{ pkg.people }} people</p>
+            <h3 class="mb-1 text-xl font-bold" :class="pkg.titleClass">{{ pkg.name }}</h3>
+            <p class="text-sm font-medium text-gray-600">{{ pkg.people }} people</p>
+            <p class="mb-4 text-sm text-gray-700">{{ pkg.description }}</p>
 
             <ul class="space-y-2 text-gray-700 text-sm">
               <li>PA System: <span class="font-semibold">{{ formatCurrency(pkg.pa) }}</span></li>
@@ -142,7 +143,7 @@
             </ul>
 
             <div class="mt-4 border-t pt-3">
-              <p class="text-lg font-bold text-gray-900">Total: {{ formatCurrency(pkg.total) }}</p>
+              <p class="text-lg font-bold" :class="pkg.totalClass">Total: {{ formatCurrency(pkg.total) }}</p>
               <p v-if="pkg.mediaNote" class="mt-1 text-xs text-gray-500">{{ pkg.mediaNote }}</p>
             </div>
           </div>
@@ -267,7 +268,7 @@ const getDecorPriceForPeople = (people) => {
   return Number(packagePricing.value.decor_50 || 0);
 };
 
-const buildPackage = (name, people, mediaType = 'reel', mediaNote = '') => {
+const buildPackage = ({ name, people, mediaType = 'reel', mediaNote = '', description = '', cardClass = 'bg-white border-gray-200', titleClass = 'text-gray-900', totalClass = 'text-gray-900' }) => {
   const pa = getPaPriceForPeople(people);
   const decor = getDecorPriceForPeople(people);
   const media = mediaType === 'still'
@@ -276,14 +277,47 @@ const buildPackage = (name, people, mediaType = 'reel', mediaNote = '') => {
   const catering = Number(packagePricing.value.catering_per_plate || 0) * people;
   const total = pa + decor + media + catering;
 
-  return { name, people, pa, decor, media, catering, total, mediaNote };
+  return { name, people, pa, decor, media, catering, total, mediaNote, description, cardClass, titleClass, totalClass };
 };
 
 const landingPackages = computed(() => [
-  buildPackage('Basic Roora Package', 20, 'still'),
-  buildPackage('Roora Plus Package', 40, 'reel'),
-  buildPackage('Roora Premium', 50, 'reel'),
-  buildPackage('RooraWedding', 150, 'reel', `Wedding media: ${packagePricing.value.media_wedding_note}`),
+  buildPackage({
+    name: 'Basic Roora Package',
+    people: 20,
+    mediaType: 'still',
+    description: 'A beautiful starter setup for intimate lobola ceremonies with essential service coverage.',
+    cardClass: 'bg-rose-50 border-rose-200',
+    titleClass: 'text-rose-700',
+    totalClass: 'text-rose-700'
+  }),
+  buildPackage({
+    name: 'Roora Plus Package',
+    people: 40,
+    mediaType: 'reel',
+    description: 'Balanced value and style for medium gatherings, with enhanced décor and media highlights.',
+    cardClass: 'bg-amber-50 border-amber-200',
+    titleClass: 'text-amber-700',
+    totalClass: 'text-amber-700'
+  }),
+  buildPackage({
+    name: 'Roora Premium',
+    people: 50,
+    mediaType: 'reel',
+    description: 'A premium experience for larger roora events that need standout ambiance and coverage.',
+    cardClass: 'bg-emerald-50 border-emerald-200',
+    titleClass: 'text-emerald-700',
+    totalClass: 'text-emerald-700'
+  }),
+  buildPackage({
+    name: 'RooraWedding',
+    people: 150,
+    mediaType: 'reel',
+    mediaNote: `Wedding media: ${packagePricing.value.media_wedding_note}`,
+    description: 'Designed for big celebrations with robust PA, décor support, and full catering scale.',
+    cardClass: 'bg-indigo-50 border-indigo-200',
+    titleClass: 'text-indigo-700',
+    totalClass: 'text-indigo-700'
+  }),
 ]);
 
 onMounted(() => {
