@@ -210,7 +210,7 @@
       <div class="mx-auto max-w-5xl px-4">
         <p class="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-green-400">WhatsApp Assistant Demo</p>
         <h2 class="mb-4 text-3xl font-bold">Simulate Chatbot Pricing Replies</h2>
-        <p class="mb-8 text-gray-300">Use command-style inputs just like chatting with an assistant. Start with <span class="font-semibold text-green-300">people 120</span>, then ask for <span class="font-semibold text-green-300">decor</span>, <span class="font-semibold text-green-300">pa</span>, <span class="font-semibold text-green-300">media still</span>, or <span class="font-semibold text-green-300">catering</span>.</p>
+        <p class="mb-8 text-gray-300">Select a package option (1-15), then follow prompts for décor people and food plates. The bot will calculate your final price instantly.</p>
 
         <div class="rounded-xl border border-gray-700 bg-black/60 p-4 shadow-xl">
           <div class="mb-3 flex items-center gap-2 border-b border-gray-700 pb-3 text-sm text-gray-400">
@@ -319,17 +319,43 @@ const services = [
 ];
 
 const botInput = ref('');
-const selectedPeople = ref(100);
+const botState = ref({
+  step: 'await_option',
+  option: null,
+  decorPeople: null,
+  plates: null,
+});
+
+const OPTION_MAP = {
+  1: ['decor', 'pa', 'media', 'catering'],
+  2: ['decor', 'pa', 'media'],
+  3: ['decor', 'pa', 'catering'],
+  4: ['decor', 'media', 'catering'],
+  5: ['pa', 'media', 'catering'],
+  6: ['decor', 'pa'],
+  7: ['decor', 'media'],
+  8: ['decor', 'catering'],
+  9: ['pa', 'media'],
+  10: ['pa', 'catering'],
+  11: ['media', 'catering'],
+  12: ['decor'],
+  13: ['pa'],
+  14: ['media'],
+  15: ['catering'],
+};
+
 const botMessages = ref([
-  { role: 'bot', text: 'Hello 👋 Welcome to RS Events WhatsApp assistant.' },
-  { role: 'bot', text: 'Please set number of people: people <number>' },
-  { role: 'bot', text: 'Then ask: decor | pa | media | media still | media reel | catering | quote | help' },
+  { role: 'bot', text: 'Greetings, how are you? 👋' },
+  { role: 'bot', text: 'You can customize your own package here. Select what you want from options 1 to 15.' },
+  { role: 'bot', text: '1.Decor, PA System, Media, Catering | 2.Decor, PA System, Media | 3.Decor, PA System, Catering | 4.Decor, Media, Catering | 5.PA System, Media, Catering' },
+  { role: 'bot', text: '6.Decor, PA System | 7.Decor, Media | 8.Decor, Catering | 9.PA System, Media | 10.PA System, Catering | 11.Media, Catering | 12.Decor | 13.PA System | 14.Media | 15.Catering' },
+  { role: 'bot', text: 'Please type the option number (e.g. 1).' },
 ]);
 
-const getMediaPrice = (option = 'reel') => {
-  return option === 'still'
-    ? Number(packagePricing.value.media_roora_still || 0)
-    : Number(packagePricing.value.media_roora_reel || 0);
+const getMediaPrice = () => Number(packagePricing.value.media_roora_reel || 0);
+
+const sendBotMessage = (text) => {
+  botMessages.value.push({ role: 'bot', text });
 };
 
 const runBotCommand = () => {
@@ -337,42 +363,102 @@ const runBotCommand = () => {
   if (!raw) return;
 
   botMessages.value.push({ role: 'user', text: raw });
-  const cmd = raw.toLowerCase();
 
-  if (cmd === 'help') {
-    botMessages.value.push({ role: 'bot', text: 'Commands: people <n>, decor, pa, media, media still, media reel, catering, quote' });
-  } else if (cmd.startsWith('people ')) {
-    const value = Number(cmd.replace('people ', '').trim());
-    if (!Number.isFinite(value) || value <= 0) {
-      botMessages.value.push({ role: 'bot', text: 'Please provide a valid people count. Example: people 120' });
-    } else {
-      selectedPeople.value = value;
-      botMessages.value.push({ role: 'bot', text: `Great! I will now quote for ${value} people.` });
+  if (raw.toLowerCase() === 'help') {
+    sendBotMessage('Type option number 1-15. If you want to restart, type restart.');
+    botInput.value = '';
+    return;
+  }
+
+  if (raw.toLowerCase() === 'restart') {
+    botState.value = { step: 'await_option', option: null, decorPeople: null, plates: null };
+    sendBotMessage('Session restarted. Please select option 1-15.');
+    botInput.value = '';
+    return;
+  }
+
+  if (botState.value.step === 'await_option') {
+    const option = Number(raw);
+    const services = OPTION_MAP[option];
+
+    if (!services) {
+      sendBotMessage('Invalid option. Please select a number from 1 to 15.');
+      botInput.value = '';
+      return;
     }
-  } else if (cmd === 'decor') {
-    const decorPrice = getDecorPriceForPeople(selectedPeople.value);
-    botMessages.value.push({ role: 'bot', text: `Décor for ${selectedPeople.value} people is ${formatCurrency(decorPrice)}.` });
-  } else if (cmd === 'pa' || cmd === 'pa system and dj') {
-    const paPrice = getPaPriceForPeople(selectedPeople.value);
-    botMessages.value.push({ role: 'bot', text: `PA System & DJ for ${selectedPeople.value} people is ${formatCurrency(paPrice)}.` });
-  } else if (cmd === 'media') {
-    botMessages.value.push({ role: 'bot', text: `Media options: still pictures ${formatCurrency(getMediaPrice('still'))}, pictures + reel ${formatCurrency(getMediaPrice('reel'))}.` });
-  } else if (cmd === 'media still' || cmd === 'still pictures' || cmd === '3.1') {
-    botMessages.value.push({ role: 'bot', text: `Still pictures package is ${formatCurrency(getMediaPrice('still'))}.` });
-  } else if (cmd === 'media reel' || cmd === 'pictures and reel video' || cmd === '3.2') {
-    botMessages.value.push({ role: 'bot', text: `Pictures + reel video package is ${formatCurrency(getMediaPrice('reel'))}.` });
-  } else if (cmd === 'catering') {
-    const total = Number(packagePricing.value.catering_per_plate || 0) * selectedPeople.value;
-    botMessages.value.push({ role: 'bot', text: `Catering at ${formatCurrency(packagePricing.value.catering_per_plate)} per plate for ${selectedPeople.value} people is ${formatCurrency(total)}.` });
-  } else if (cmd === 'quote') {
-    const pa = getPaPriceForPeople(selectedPeople.value);
-    const decor = getDecorPriceForPeople(selectedPeople.value);
-    const media = getMediaPrice('reel');
-    const catering = Number(packagePricing.value.catering_per_plate || 0) * selectedPeople.value;
-    const total = pa + decor + media + catering;
-    botMessages.value.push({ role: 'bot', text: `Quote (${selectedPeople.value} people) -> Decor ${formatCurrency(decor)}, PA+DJ ${formatCurrency(pa)}, Media (reel) ${formatCurrency(media)}, Catering ${formatCurrency(catering)}. TOTAL ${formatCurrency(total)}.` });
-  } else {
-    botMessages.value.push({ role: 'bot', text: 'Sorry, command not recognized. Type help for options.' });
+
+    botState.value.option = option;
+    botState.value.decorPeople = null;
+    botState.value.plates = null;
+
+    if (services.includes('decor') || services.includes('pa')) {
+      botState.value.step = 'await_decor_people';
+      sendBotMessage('Please enter number of people decor.');
+    } else if (services.includes('catering')) {
+      botState.value.step = 'await_plates';
+      sendBotMessage('Please enter number of people food plates.');
+    } else {
+      const total = services.includes('media') ? getMediaPrice() : 0;
+      sendBotMessage(`Final price for option ${option} is ${formatCurrency(total)}.`);
+      botState.value.step = 'await_option';
+      sendBotMessage('You can select another option (1-15).');
+    }
+
+    botInput.value = '';
+    return;
+  }
+
+  if (botState.value.step === 'await_decor_people') {
+    const people = Number(raw);
+    if (!Number.isFinite(people) || people <= 0) {
+      sendBotMessage('Please enter a valid number of people for decor.');
+      botInput.value = '';
+      return;
+    }
+
+    botState.value.decorPeople = people;
+    const services = OPTION_MAP[botState.value.option] || [];
+
+    if (services.includes('catering')) {
+      botState.value.step = 'await_plates';
+      sendBotMessage('Please enter number of people food plates.');
+    } else {
+      const decor = services.includes('decor') ? getDecorPriceForPeople(people) : 0;
+      const pa = services.includes('pa') ? getPaPriceForPeople(people) : 0;
+      const media = services.includes('media') ? getMediaPrice() : 0;
+      const total = decor + pa + media;
+      sendBotMessage(`Final price is ${formatCurrency(total)} (Decor ${formatCurrency(decor)}, PA ${formatCurrency(pa)}, Media ${formatCurrency(media)}).`);
+      botState.value.step = 'await_option';
+      sendBotMessage('You can select another option (1-15).');
+    }
+
+    botInput.value = '';
+    return;
+  }
+
+  if (botState.value.step === 'await_plates') {
+    const plates = Number(raw);
+    if (!Number.isFinite(plates) || plates <= 0) {
+      sendBotMessage('Please enter a valid number of food plates.');
+      botInput.value = '';
+      return;
+    }
+
+    botState.value.plates = plates;
+    const services = OPTION_MAP[botState.value.option] || [];
+    const people = botState.value.decorPeople || plates;
+
+    const decor = services.includes('decor') ? getDecorPriceForPeople(people) : 0;
+    const pa = services.includes('pa') ? getPaPriceForPeople(people) : 0;
+    const media = services.includes('media') ? getMediaPrice() : 0;
+    const catering = services.includes('catering') ? Number(packagePricing.value.catering_per_plate || 0) * plates : 0;
+    const total = decor + pa + media + catering;
+
+    sendBotMessage(`Final price is ${formatCurrency(total)} (Decor ${formatCurrency(decor)}, PA ${formatCurrency(pa)}, Media ${formatCurrency(media)}, Catering ${formatCurrency(catering)}).`);
+    botState.value.step = 'await_option';
+    sendBotMessage('You can select another option (1-15).');
+    botInput.value = '';
+    return;
   }
 
   botInput.value = '';
