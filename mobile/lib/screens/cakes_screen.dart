@@ -38,7 +38,7 @@ class _CakesScreenState extends State<CakesScreen> {
             margin: EdgeInsets.only(bottom: 16),
             child: ListTile(
               title: Text(o['flavor'] ?? 'Cake Order'),
-              subtitle: Text("Due: \${o['due_date']}\n\${o['design_notes'] ?? ''}"),
+              subtitle: Text("Due: ${o['due_date']}\n${o['design_notes'] ?? ''}"),
               trailing: Chip(label: Text(o['status'] ?? '')),
             ),
           );

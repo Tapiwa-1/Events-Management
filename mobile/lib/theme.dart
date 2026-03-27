@@ -13,7 +13,7 @@ class AppTheme {
       foregroundColor: Color(0xFF111827), // gray-900
       elevation: 1,
     ),
-    cardTheme: CardThemeData(
+    cardTheme: CardTheme(
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: Color(0xFFE5E7EB)), // gray-200
