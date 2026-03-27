@@ -47,10 +47,15 @@ export const runAutomations = async (req, res) => {
         let sentCount = 0;
         let removedCount = 0;
 
-        for (const inquiry of inquiries) {
-            if (inquiry.phone) {
+        // Process in chunks to avoid overwhelming resources
+        const CHUNK_SIZE = 50;
+        for (let i = 0; i < inquiries.length; i += CHUNK_SIZE) {
+            const chunk = inquiries.slice(i, i + CHUNK_SIZE);
+
+            const results = await Promise.all(chunk.map(async (inquiry) => {
+                if (!inquiry.phone) return { sent: false, removed: false };
+
                 await sendSMS(inquiry.phone, `Follow-up ${inquiry.message_count + 1}/3`);
-                sentCount++;
 
                 const newCount = inquiry.message_count + 1;
                 const updateData = {
@@ -58,14 +63,23 @@ export const runAutomations = async (req, res) => {
                 };
 
                 let status = inquiry.status;
+                let isRemoved = false;
                 if (newCount >= 3) {
                     status = 'removed';
-                    removedCount++;
+                    isRemoved = true;
                 }
                 updateData.status = status;
                 updateData.last_message_sent = new Date().toISOString();
 
                 await Inquiry.update(inquiry.id, updateData);
+
+                return { sent: true, removed: isRemoved };
+            }));
+
+            // Aggregate counts from the chunk results
+            for (const result of results) {
+                if (result.sent) sentCount++;
+                if (result.removed) removedCount++;
             }
         }
 
