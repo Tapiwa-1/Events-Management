@@ -81,7 +81,7 @@ router.post('/import-sheet', async (req, res) => {
           // Stored phones might be formatted. Let's fetch all events once to minimize DB hits? No, dataset is small.
           // Let's use a LIKE query on the phone column.
 
-          const events = await Event.query(`SELECT * FROM events WHERE client_phone LIKE '%${cleanPhone}'`);
+          const events = await Event.query(`SELECT * FROM events WHERE client_phone LIKE ?`, [`%${cleanPhone}`]);
           const existingEvent = events.length > 0 ? events[0] : null;
 
           if (existingEvent) {
