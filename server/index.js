@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { initDb } from './database.js';
 import { configureSecurity } from './middleware/security.js';
+import { errorHandler } from './middleware/errorHandler.js';
 import authRouter from './routes/auth.js';
 import eventsRouter from './routes/events.js';
 import inventoryRouter from './routes/inventory.js';
@@ -36,6 +37,8 @@ app.use('/api/cakes', cakesRouter);
 app.use('/api/logistics', logisticsRouter);
 app.use('/api/business', businessRouter);
 app.use('/api/marketing', marketingRouter);
+
+app.use(errorHandler);
 
 // Initialize DB before starting server
 initDb().then(() => {
