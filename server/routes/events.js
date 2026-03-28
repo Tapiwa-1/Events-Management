@@ -27,8 +27,17 @@ router.post('/import-sheet', async (req, res) => {
       let createdCount = 0;
       let updatedCount = 0;
 
-      // Skip header rows if any (assuming logic starts reading rows that look like data)
-      // The previous logic targeted specific indices: 7=Date, 8=Name, 9=Phone, 10=Deposit, 11=Remaining, 12=Location, 13=Transport
+      // Fetch all events upfront to avoid N+1 queries
+      const allEvents = await Event.query('SELECT id, client_phone, location, total_cost, amount_paid, transport_cost, status FROM events WHERE client_phone IS NOT NULL');
+      const eventMap = new Map();
+      for (const event of allEvents) {
+          const clean = event.client_phone.replace(/\D/g, '').slice(-9);
+          if (clean.length >= 5) {
+              if (!eventMap.has(clean)) {
+                  eventMap.set(clean, event);
+              }
+          }
+      }
 
       for (const row of records) {
           if (row.length < 10) continue;
@@ -57,16 +66,6 @@ router.post('/import-sheet', async (req, res) => {
           if (wasDone && wasDone.trim().toLowerCase() === 'yes') {
               status = 'completed';
           } else if (isPaid) {
-              // Fallback to paid logic if not explicitly marked done?
-              // The user request implies "Was Done" indicates completion.
-              // If paid but not done, should it be completed? probably not.
-              // However, let's stick to "Was Done" being the primary indicator of completion.
-              // If "Was Done" is empty, default to 'planned' unless we want to keep existing status.
-              // But here we are overwriting or creating.
-              // Let's assume if paid, it might be completed, but "Was Done" overrides.
-              // If "Was Done" is present, use it. If not, use isPaid logic?
-              // The prompt says "indicate that the  event is complete".
-              // So I will rely on "Was Done".
               status = 'planned';
           }
 
@@ -75,14 +74,7 @@ router.post('/import-sheet', async (req, res) => {
           const cleanPhone = rawPhone.replace(/\D/g, '').slice(-9);
           if (cleanPhone.length < 5) continue; // Skip invalid phones
 
-          // Try to find existing event by matching phone (fuzzy match on last 9 digits)
-          // We can't do SQL 'LIKE' easily with the stripped phone in SQLite without a custom function or retrieving all.
-          // For efficiency, we might retrieve all events and map them, or do a LIKE query if we assume stored format.
-          // Stored phones might be formatted. Let's fetch all events once to minimize DB hits? No, dataset is small.
-          // Let's use a LIKE query on the phone column.
-
-          const events = await Event.query(`SELECT * FROM events WHERE client_phone LIKE '%${cleanPhone}'`);
-          const existingEvent = events.length > 0 ? events[0] : null;
+          const existingEvent = eventMap.get(cleanPhone);
 
           if (existingEvent) {
               await Event.update(existingEvent.id, {
@@ -92,6 +84,14 @@ router.post('/import-sheet', async (req, res) => {
                   location: location || existingEvent.location,
                   status: status // Update status based on sheet
               });
+
+              // Update in-memory map logic to reflect latest state
+              existingEvent.total_cost = totalCost;
+              existingEvent.amount_paid = amountPaid;
+              existingEvent.transport_cost = transport;
+              existingEvent.status = status;
+              if (location) existingEvent.location = location;
+
               updatedCount++;
           } else {
               // Create New
@@ -113,7 +113,7 @@ router.post('/import-sheet', async (req, res) => {
                   }
               }
 
-              await Event.create({
+              const newEvent = await Event.create({
                   name,
                   client_phone: rawPhone,
                   date: formattedDate,
@@ -124,6 +124,8 @@ router.post('/import-sheet', async (req, res) => {
                   transport_cost: transport,
                   type: 'Sheet Import'
               });
+
+              eventMap.set(cleanPhone, newEvent);
               createdCount++;
           }
       }
