@@ -5,8 +5,12 @@ import { getDb } from '../database.js';
 import { sendSMS } from '../broadcast/smsSender.js';
 import { Event } from '../models/Event.js';
 import { InventoryBooking } from '../models/InventoryBooking.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Protect all routes
+router.use(authenticateToken);
 
 router.post('/import-sheet', async (req, res) => {
   const { url } = req.body;
