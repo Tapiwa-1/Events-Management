@@ -66,26 +66,32 @@ async function seed() {
 
   // Ensure Users
   const userCount = await db.get('SELECT count(*) as count FROM users');
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'password123';
+  const defaultPassword = process.env.DEFAULT_PASSWORD || 'password123'; // For non-admin users if needed
+
   if (userCount.count === 0) {
-    const passwordHash = bcrypt.hashSync('password123', 10);
+    const adminPasswordHash = bcrypt.hashSync(adminPassword, 10);
+    const defaultPasswordHash = bcrypt.hashSync(defaultPassword, 10);
+
     await db.run(`
       INSERT INTO users (email, password_hash, role, full_name) VALUES
       (?, ?, ?, ?),
       (?, ?, ?, ?),
       (?, ?, ?, ?)
     `, [
-        'admin@example.com', passwordHash, 'admin', 'System Admin',
-        'staff@example.com', passwordHash, 'staff', 'Staff Member',
-        'client@example.com', passwordHash, 'customer', 'Client User'
+        adminEmail, adminPasswordHash, 'admin', 'System Admin',
+        'staff@example.com', defaultPasswordHash, 'staff', 'Staff Member',
+        'client@example.com', defaultPasswordHash, 'customer', 'Client User'
     ]);
     console.log('Seeded users');
   } else {
     // Check if admin exists
-    const admin = await db.get("SELECT * FROM users WHERE email = 'admin@example.com'");
+    const admin = await db.get("SELECT * FROM users WHERE email = ?", [adminEmail]);
     if (!admin) {
-        const passwordHash = bcrypt.hashSync('password123', 10);
+        const adminPasswordHash = bcrypt.hashSync(adminPassword, 10);
         await db.run(`INSERT INTO users (email, password_hash, role, full_name) VALUES (?, ?, ?, ?)`,
-            ['admin@example.com', passwordHash, 'admin', 'System Admin']
+            [adminEmail, adminPasswordHash, 'admin', 'System Admin']
         );
         console.log('Seeded admin user');
     }
