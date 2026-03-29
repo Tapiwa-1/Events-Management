@@ -420,14 +420,14 @@ const handleSubmit = async () => {
 
         // Save Return Info
         if (form.value.status === 'completed' && bookedItems.value.length > 0) {
-            for (const item of bookedItems.value) {
-                await api.put(`/inventory/booking/${item.id}`, {
-                    qty_back: item.qty_back,
-                    missing: item.missing,
-                    condition_return: item.condition_return,
-                    status: 'returned' // Mark as returned
-                });
-            }
+            const updates = bookedItems.value.map(item => ({
+                id: item.id,
+                qty_back: item.qty_back,
+                missing: item.missing,
+                condition_return: item.condition_return,
+                status: 'returned' // Mark as returned
+            }));
+            await api.put('/inventory/booking/bulk', { updates });
         }
     } else {
         await api.post('/events', { ...payload, client_id: authStore.user?.id || 1 });

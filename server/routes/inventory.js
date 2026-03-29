@@ -15,6 +15,9 @@ router.put('/:id', inventoryController.updateItem);
 // Book an item
 router.post('/book', inventoryController.bookItem);
 
+// Bulk Update Booking
+router.put('/booking/bulk', inventoryController.updateBookingBulk);
+
 // Update booking (Return, Move, Update Status)
 router.put('/booking/:id', inventoryController.updateBooking);
 
