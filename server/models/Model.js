@@ -2,19 +2,27 @@ import { getDb } from '../database.js';
 
 export class Model {
   static tableName = '';
+  static columns = [];
 
   static async db() {
     return await getDb();
   }
 
+  static getSelectColumns() {
+    if (this.columns && this.columns.length > 0) {
+      return this.columns.join(', ');
+    }
+    return '*';
+  }
+
   static async all() {
     const db = await this.db();
-    return await db.all(`SELECT * FROM ${this.tableName}`);
+    return await db.all(`SELECT ${this.getSelectColumns()} FROM ${this.tableName}`);
   }
 
   static async find(id) {
     const db = await this.db();
-    return await db.get(`SELECT * FROM ${this.tableName} WHERE id = ?`, id);
+    return await db.get(`SELECT ${this.getSelectColumns()} FROM ${this.tableName} WHERE id = ?`, id);
   }
 
   static async where(conditions) {
@@ -22,7 +30,7 @@ export class Model {
     const keys = Object.keys(conditions);
     const values = Object.values(conditions);
     const whereClause = keys.map(key => `${key} = ?`).join(' AND ');
-    return await db.all(`SELECT * FROM ${this.tableName} WHERE ${whereClause}`, values);
+    return await db.all(`SELECT ${this.getSelectColumns()} FROM ${this.tableName} WHERE ${whereClause}`, values);
   }
 
   static async create(data) {
