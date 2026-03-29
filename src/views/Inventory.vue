@@ -236,19 +236,15 @@
         </div>
 
         <!-- Pagination Controls -->
-        <div v-if="filteredData.length > 0" class="flex flex-col items-center mt-4">
-            <span class="text-sm text-gray-700 dark:text-gray-400">
-                Showing <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-semibold text-gray-900 dark:text-white">{{ Math.min(currentPage * itemsPerPage, filteredData.length) }}</span> of <span class="font-semibold text-gray-900 dark:text-white">{{ filteredData.length }}</span> Entries
-            </span>
-            <div class="inline-flex mt-2 xs:mt-0">
-                <button @click="prevPage" :disabled="currentPage === 1" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 rounded-l hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
-                    Prev
-                </button>
-                <button @click="nextPage" :disabled="currentPage === totalPages" class="flex items-center justify-center px-4 h-10 text-base font-medium text-white bg-blue-800 border-0 border-l border-blue-700 rounded-r hover:bg-blue-900 dark:bg-blue-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white disabled:opacity-50">
-                    Next
-                </button>
-            </div>
-        </div>
+        <Pagination
+            v-if="filteredData.length > 0"
+            :currentPage="currentPage"
+            :totalPages="totalPages"
+            :itemsPerPage="itemsPerPage"
+            :totalEntries="filteredData.length"
+            @next="nextPage"
+            @prev="prevPage"
+        />
 
     </div>
 
@@ -394,6 +390,8 @@ import BaseInput from '../components/common/BaseInput.vue';
 import BaseSelect from '../components/common/BaseSelect.vue';
 import BaseModal from '../components/common/BaseModal.vue';
 import BaseBadge from '../components/common/BaseBadge.vue';
+import Pagination from '../components/common/Pagination.vue';
+import { usePagination } from '../composables/usePagination.js';
 
 const selectedCategory = ref('pa');
 const activeTab = ref('register');
@@ -408,8 +406,6 @@ const events = ref([]);
 // Filters & Search
 const selectedEventId = ref('');
 const searchQuery = ref('');
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
 const sortKey = ref(null);
 const sortOrder = ref('asc');
 
@@ -584,13 +580,7 @@ const sortedData = computed(() => {
     return data;
 });
 
-const paginatedData = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value;
-    const end = start + itemsPerPage.value;
-    return sortedData.value.slice(start, end);
-});
-
-const totalPages = computed(() => Math.ceil(filteredData.value.length / itemsPerPage.value));
+const { currentPage, itemsPerPage, totalPages, paginatedData, nextPage, prevPage } = usePagination(sortedData, 10);
 
 const sortBy = (key) => {
     if (sortKey.value === key) {
@@ -600,9 +590,6 @@ const sortBy = (key) => {
         sortOrder.value = 'asc';
     }
 };
-
-const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
-const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
 
 // Initial Load & Watchers
 onMounted(() => {

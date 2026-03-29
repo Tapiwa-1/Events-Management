@@ -474,6 +474,7 @@ import BaseModal from '../components/common/BaseModal.vue';
 import BaseBadge from '../components/common/BaseBadge.vue';
 import BaseTable from '../components/common/BaseTable.vue';
 import Pagination from '../components/common/Pagination.vue';
+import { usePagination } from '../composables/usePagination.js';
 
 const selectedBook = ref('cash_book');
 const events = ref([]);
@@ -491,8 +492,6 @@ const selectedPeriod = ref(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
 // Table Controls State
 const searchQuery = ref('');
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
 const sortKey = ref(null);
 const sortOrder = ref('asc');
 
@@ -812,13 +811,7 @@ const sortedData = computed(() => {
     return data;
 });
 
-const paginatedData = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage.value;
-    const end = start + itemsPerPage.value;
-    return sortedData.value.slice(start, end);
-});
-
-const totalPages = computed(() => Math.ceil(filteredData.value.length / itemsPerPage.value));
+const { currentPage, itemsPerPage, totalPages, paginatedData, nextPage, prevPage } = usePagination(sortedData, 10);
 
 const sortBy = (key) => {
     if (sortKey.value === key) {
@@ -828,9 +821,6 @@ const sortBy = (key) => {
         sortOrder.value = 'asc';
     }
 };
-
-const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
-const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
 
 const selectedPeriodLabel = computed(() => {
     if (!selectedPeriod.value) return '';
