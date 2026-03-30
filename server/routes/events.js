@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import { parse } from 'csv-parse/sync';
+import { parse } from 'csv-parse';
 import { getDb } from '../database.js';
 import { sendSMS } from '../broadcast/smsSender.js';
 import { Event } from '../models/Event.js';
@@ -18,11 +18,11 @@ router.post('/import-sheet', async (req, res) => {
           csvUrl = csvUrl.replace(/\/edit.*/, '/export?format=csv');
       }
 
-      const response = await axios.get(csvUrl);
-      const records = parse(response.data, {
+      const response = await axios.get(csvUrl, { responseType: 'stream' });
+      const parser = response.data.pipe(parse({
           columns: false,
           skip_empty_lines: true
-      });
+      }));
 
       let createdCount = 0;
       let updatedCount = 0;
@@ -30,7 +30,7 @@ router.post('/import-sheet', async (req, res) => {
       // Skip header rows if any (assuming logic starts reading rows that look like data)
       // The previous logic targeted specific indices: 7=Date, 8=Name, 9=Phone, 10=Deposit, 11=Remaining, 12=Location, 13=Transport
 
-      for (const row of records) {
+      for await (const row of parser) {
           if (row.length < 10) continue;
 
           const rawDate = row[7];
