@@ -2,14 +2,17 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 
 export async function getDb() {
-  return open({
+  const db = await open({
     filename: './database.sqlite',
     driver: sqlite3.Database
   });
+  await db.run('PRAGMA busy_timeout = 5000');
+  return db;
 }
 
 export async function initDb() {
   const db = await getDb();
+  await db.exec('PRAGMA journal_mode = WAL;');
   await db.exec(`PRAGMA foreign_keys = ON;`);
 
   await db.exec(`

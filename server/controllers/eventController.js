@@ -32,9 +32,9 @@ export const createEvent = async (req, res) => {
 
     // Handle Inventory Bookings
     if (inventory && Array.isArray(inventory) && inventory.length > 0) {
-        for (const item of inventory) {
+        await Promise.all(inventory.map(item => {
             if (item.quantity > 0) {
-                await InventoryBooking.create({
+                return InventoryBooking.create({
                     event_id: event.id,
                     item_id: item.item_id,
                     quantity: item.quantity,
@@ -43,7 +43,7 @@ export const createEvent = async (req, res) => {
                     status: 'reserved'
                 });
             }
-        }
+        }));
     }
 
     res.json(event);
