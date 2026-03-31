@@ -192,6 +192,39 @@ export async function initDb() {
       date TEXT DEFAULT CURRENT_TIMESTAMP,
       status TEXT DEFAULT 'new'
     );
+
+    CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
+    CREATE INDEX IF NOT EXISTS idx_events_client_id ON events(client_id);
+    CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
+    CREATE INDEX IF NOT EXISTS idx_events_status ON events(status);
+
+    CREATE INDEX IF NOT EXISTS idx_inventory_bookings_item_id_start_time ON inventory_bookings(item_id, start_time);
+    CREATE INDEX IF NOT EXISTS idx_inventory_bookings_event_id ON inventory_bookings(event_id);
+
+    CREATE INDEX IF NOT EXISTS idx_maintenance_logs_item_id ON maintenance_logs(item_id);
+    CREATE INDEX IF NOT EXISTS idx_maintenance_logs_date ON maintenance_logs(date);
+
+    CREATE INDEX IF NOT EXISTS idx_consumables_logs_item_id ON consumables_logs(item_id);
+    CREATE INDEX IF NOT EXISTS idx_consumables_logs_date ON consumables_logs(date);
+
+    CREATE INDEX IF NOT EXISTS idx_service_bookings_event_id ON service_bookings(event_id);
+    CREATE INDEX IF NOT EXISTS idx_service_bookings_photographer_id ON service_bookings(photographer_id);
+
+    CREATE INDEX IF NOT EXISTS idx_cake_orders_event_id ON cake_orders(event_id);
+
+    CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_expenses_event_id ON expenses(event_id);
+    CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+
+    CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+
+    CREATE INDEX IF NOT EXISTS idx_loans_status ON loans(status);
+
+    CREATE INDEX IF NOT EXISTS idx_loan_repayments_loan_id ON loan_repayments(loan_id);
+
+    CREATE INDEX IF NOT EXISTS idx_inquiries_phone ON inquiries(phone);
+    CREATE INDEX IF NOT EXISTS idx_inquiries_status ON inquiries(status);
   `);
 
   try {
@@ -199,6 +232,12 @@ export async function initDb() {
     console.log('Added client_phone column to events table');
   } catch (e) {
     // Column likely exists
+  }
+
+  try {
+    await db.exec(`CREATE INDEX IF NOT EXISTS idx_events_client_phone ON events(client_phone);`);
+  } catch (e) {
+    console.error('Error creating index on client_phone', e);
   }
 
   try {
