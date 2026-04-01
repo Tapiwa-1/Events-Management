@@ -119,10 +119,9 @@ export const updateBooking = async (req, res) => {
 };
 
 export const getMovementLog = async (req, res) => {
-    const { event_id } = req.query;
+    const { event_id, page, limit } = req.query;
 
-    let query = `
-        SELECT ib.*, ii.name as item_name, e.name as event_name, e.date as event_date
+    let baseQuery = `
         FROM inventory_bookings ib
         JOIN inventory_items ii ON ib.item_id = ii.id
         JOIN events e ON ib.event_id = e.id
@@ -130,15 +129,42 @@ export const getMovementLog = async (req, res) => {
     const params = [];
 
     if (event_id) {
-        query += ' WHERE ib.event_id = ?';
+        baseQuery += ' WHERE ib.event_id = ?';
         params.push(event_id);
     }
 
-    query += ' ORDER BY e.date DESC';
+    // Stable sort
+    const orderBy = ' ORDER BY e.date DESC, ib.id DESC';
 
     try {
-        const logs = await InventoryBooking.query(query, params);
-        res.json(logs);
+        if (page && limit) {
+            const p = Math.max(1, parseInt(page) || 1);
+            const l = Math.max(1, parseInt(limit) || 10);
+            const offset = (p - 1) * l;
+
+            // Get total count
+            const countQuery = `SELECT COUNT(*) as count ${baseQuery}`;
+            const countResult = await InventoryBooking.first(countQuery, params);
+            const total = countResult ? countResult.count : 0;
+
+            // Get data
+            const dataQuery = `SELECT ib.*, ii.name as item_name, e.name as event_name, e.date as event_date ${baseQuery} ${orderBy} LIMIT ? OFFSET ?`;
+            const dataParams = [...params, l, offset];
+            const logs = await InventoryBooking.query(dataQuery, dataParams);
+
+            return res.json({
+                data: logs,
+                total,
+                page: p,
+                limit: l,
+                totalPages: Math.ceil(total / l)
+            });
+        } else {
+            // Default (No pagination) - Existing functionality
+            const query = `SELECT ib.*, ii.name as item_name, e.name as event_name, e.date as event_date ${baseQuery} ${orderBy}`;
+            const logs = await InventoryBooking.query(query, params);
+            res.json(logs);
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
