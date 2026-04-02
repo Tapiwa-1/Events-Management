@@ -192,19 +192,25 @@ export const getConsumablesLogs = async (req, res) => {
     }
 };
 
-export const createConsumableLog = async (req, res) => {
+export const createConsumableLog = async (req, res, deps = {}) => {
+    // Handle the case where Express passes 'next' as the third argument
+    const {
+        InventoryItemModel = InventoryItem,
+        ConsumableLogModel = ConsumableLog
+    } = (typeof deps === 'function' ? {} : deps);
+
     const { item_id, date, qty_used } = req.body;
     try {
-        const item = await InventoryItem.find(item_id);
+        const item = await InventoryItemModel.find(item_id);
         if (!item) return res.status(404).json({ error: 'Item not found' });
 
         const newBalance = item.total_quantity - qty_used;
 
         // Update master stock
-        await InventoryItem.update(item_id, { total_quantity: newBalance });
+        await InventoryItemModel.update(item_id, { total_quantity: newBalance });
 
         // Log usage
-        await ConsumableLog.create({ item_id, date, qty_used, balance: newBalance });
+        await ConsumableLogModel.create({ item_id, date, qty_used, balance: newBalance });
 
         res.json({ success: true, new_balance: newBalance });
     } catch (err) {
