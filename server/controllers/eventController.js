@@ -32,18 +32,20 @@ export const createEvent = async (req, res) => {
 
     // Handle Inventory Bookings
     if (inventory && Array.isArray(inventory) && inventory.length > 0) {
-        for (const item of inventory) {
-            if (item.quantity > 0) {
-                await InventoryBooking.create({
-                    event_id: event.id,
-                    item_id: item.item_id,
-                    quantity: item.quantity,
-                    start_time,
-                    end_time,
-                    status: 'reserved'
-                });
-            }
-        }
+        await Promise.all(
+            inventory
+                .filter(item => item.quantity > 0)
+                .map(item =>
+                    InventoryBooking.create({
+                        event_id: event.id,
+                        item_id: item.item_id,
+                        quantity: item.quantity,
+                        start_time,
+                        end_time,
+                        status: 'reserved'
+                    })
+                )
+        );
     }
 
     res.json(event);
