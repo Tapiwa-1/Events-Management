@@ -27,6 +27,18 @@ router.post('/import-sheet', async (req, res) => {
       let createdCount = 0;
       let updatedCount = 0;
 
+      // Optimization: Fetch all events once and build a map for fast lookup
+      const allEvents = await Event.all();
+      const phoneMap = new Map();
+      for (const event of allEvents) {
+          if (event.client_phone) {
+              const key = event.client_phone.replace(/\D/g, '').slice(-9);
+              if (key.length >= 5 && !phoneMap.has(key)) {
+                  phoneMap.set(key, event);
+              }
+          }
+      }
+
       // Skip header rows if any (assuming logic starts reading rows that look like data)
       // The previous logic targeted specific indices: 7=Date, 8=Name, 9=Phone, 10=Deposit, 11=Remaining, 12=Location, 13=Transport
 
@@ -76,22 +88,17 @@ router.post('/import-sheet', async (req, res) => {
           if (cleanPhone.length < 5) continue; // Skip invalid phones
 
           // Try to find existing event by matching phone (fuzzy match on last 9 digits)
-          // We can't do SQL 'LIKE' easily with the stripped phone in SQLite without a custom function or retrieving all.
-          // For efficiency, we might retrieve all events and map them, or do a LIKE query if we assume stored format.
-          // Stored phones might be formatted. Let's fetch all events once to minimize DB hits? No, dataset is small.
-          // Let's use a LIKE query on the phone column.
-
-          const events = await Event.query(`SELECT * FROM events WHERE client_phone LIKE '%${cleanPhone}'`);
-          const existingEvent = events.length > 0 ? events[0] : null;
+          const existingEvent = phoneMap.get(cleanPhone);
 
           if (existingEvent) {
-              await Event.update(existingEvent.id, {
+              const updatedEvent = await Event.update(existingEvent.id, {
                   total_cost: totalCost,
                   amount_paid: amountPaid,
                   transport_cost: transport,
                   location: location || existingEvent.location,
                   status: status // Update status based on sheet
               });
+              phoneMap.set(cleanPhone, updatedEvent);
               updatedCount++;
           } else {
               // Create New
@@ -113,7 +120,7 @@ router.post('/import-sheet', async (req, res) => {
                   }
               }
 
-              await Event.create({
+              const newEvent = await Event.create({
                   name,
                   client_phone: rawPhone,
                   date: formattedDate,
@@ -124,6 +131,7 @@ router.post('/import-sheet', async (req, res) => {
                   transport_cost: transport,
                   type: 'Sheet Import'
               });
+              phoneMap.set(cleanPhone, newEvent);
               createdCount++;
           }
       }
